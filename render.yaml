@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: mathmatch
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FIREBASE_CREDENTIALS
+        sync: false
