@@ -43,10 +43,38 @@ question_bank = pd.read_csv('question_bank.csv')
 
 # ── Functions ──────────────────────────────────────
 
+def build_student_factors(attempts):
+    student_vec = np.random.normal(0, 0.1, 50)
+    lr = 0.01
+    for attempt in attempts:
+        problem_id = str(attempt['problem_id'])
+        is_correct = attempt['is_correct']
+        if problem_id not in problem_factors:
+            continue
+        problem_vec = np.array(problem_factors[problem_id])
+        predicted = np.dot(student_vec, problem_vec)
+        actual = 1 if is_correct else 0
+        error = actual - predicted
+        student_vec += lr * error * problem_vec
+    return student_vec.tolist()
+
 def recommend_questions(student_id, top_n=5):
-    if str(student_id) not in student_factors:
+    student_vec = None
+    if str(student_id) in student_factors:
+        student_vec = np.array(student_factors[str(student_id)])
+    else:
+        try:
+            doc_ref = db.collection('students').document(str(student_id)).get()
+            if doc_ref.exists:
+                doc_data = doc_ref.to_dict()
+                if 'factors' in doc_data:
+                    student_vec = np.array(doc_data['factors'])
+        except Exception as e:
+            print(f"Error fetching student factors from Firestore: {e}")
+
+    if student_vec is None:
         return []
-    student_vec = np.array(student_factors[str(student_id)])
+
     scores = {}
     for problem_id, factors in problem_factors.items():
         problem_vec = np.array(factors)
@@ -54,6 +82,7 @@ def recommend_questions(student_id, top_n=5):
         scores[problem_id] = predicted_score
     sorted_problems = sorted(scores.items(), key=lambda x: x[1])
     return [problem_id for problem_id, score in sorted_problems[:top_n]]
+
 
 def generate_question(original_question_text):
     prompt = f"""
@@ -93,6 +122,18 @@ def save_attempt(student_id, problem_id, is_correct):
     })
 
 # ── Endpoints ──────────────────────────────────────
+
+@app.route('/build_student', methods=['POST'])
+def build_student():
+    data = request.json
+    student_id = data['student_id']
+    attempts = data['attempts']
+    factors = build_student_factors(attempts)
+    db.collection('students').document(student_id).set({
+        'student_id': student_id,
+        'factors': factors
+    })
+    return jsonify({'status': 'built', 'student_id': student_id})
 
 @app.route('/attempt', methods=['POST'])
 def attempt():

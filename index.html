@@ -883,6 +883,7 @@
         let currentPhase = 1; // 1 = Onboarding (5 Qs), 2 = SVD Recommendations (infinite)
         let onboardingQuestions = [];
         let onboardingIndex = 0;
+        let onboardingAttempts = []; // Tracks attempts during Phase 1 onboarding
         let currentQuestion = null; // Standardized question object currently displayed
         
         // Stats
@@ -1509,6 +1510,14 @@
             // Show feedback card
             renderFeedbackPanel(isCorrect, misconceptionText);
 
+            // Track attempts for POST /build_student at the end of onboarding
+            if (currentPhase === 1) {
+                onboardingAttempts.push({
+                    problem_id: currentQuestion.id,
+                    is_correct: isCorrect
+                });
+            }
+
             // POST Attempt to Render Server
             const payload = {
                 student_id: studentId,
@@ -1582,13 +1591,35 @@
             document.getElementById("btn-next-question").classList.remove("hidden");
         }
 
-        function loadNextQuestion() {
+        async function loadNextQuestion() {
             if (currentPhase === 1) {
                 onboardingIndex++;
                 if (onboardingIndex < 5) {
                     displayCurrentQuestion();
                 } else {
-                    // Onboarding finished, transition to Phase 2 SVD recommendations
+                    // Onboarding finished, build student factors on server
+                    showLoading("Building SVD profile...", "Calibrating student factors based on onboarding performance...");
+                    
+                    const payload = {
+                        student_id: studentId,
+                        attempts: onboardingAttempts
+                    };
+                    
+                    try {
+                        const response = await fetch(`${API_BASE}/build_student`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
+                        if (response.ok) {
+                            showToast("Student profile calibrated successfully!", "success");
+                        } else {
+                            console.warn("Failed to build student profile on server.");
+                        }
+                    } catch (err) {
+                        console.warn("Failed to call /build_student API.", err);
+                    }
+                    
                     showToast("Onboarding complete! Loading adaptive SVD questions...", "success");
                     currentPhase = 2;
                     displayCurrentQuestion();
