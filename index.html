@@ -874,6 +874,39 @@
         // --- 1. STATE & ENVIRONMENT VARIABLES ---
         const API_BASE = "https://mathmatch.onrender.com";
         
+        let wakingUpToastActive = false;
+
+        async function fetchWithTimeout(url, options = {}) {
+            const timeout = 30000;
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            
+            let warningId = setTimeout(() => {
+                if (!wakingUpToastActive) {
+                    wakingUpToastActive = true;
+                    showToast("Waking up AI server, please wait...", "info");
+                    setTimeout(() => { wakingUpToastActive = false; }, 4000);
+                }
+            }, 3000);
+            
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(warningId);
+                clearTimeout(id);
+                return response;
+            } catch (err) {
+                clearTimeout(warningId);
+                clearTimeout(id);
+                if (err.name === 'AbortError') {
+                    throw new Error(`Request timed out after 30 seconds`);
+                }
+                throw err;
+            }
+        }
+
         let studentId = "";
         let username = "";
         let selectedGoal = "";
@@ -1072,7 +1105,27 @@
         window.addEventListener("DOMContentLoaded", () => {
             setupEventListeners();
             loadLocalFiles();
+            startKeepAlivePing();
         });
+
+        function startKeepAlivePing() {
+            const sendPing = async () => {
+                try {
+                    console.log("Sending keep-alive ping...");
+                    await fetchWithTimeout(`${API_BASE}/recommend`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ student_id: 'ping' })
+                    });
+                } catch (err) {
+                    console.warn("Keep-alive ping failed:", err);
+                }
+            };
+            // Send one immediately to wake it up on load
+            sendPing();
+            // Start the interval (every 10 minutes)
+            setInterval(sendPing, 10 * 60 * 1000);
+        }
 
         function setupEventListeners() {
             // Display name change
@@ -1299,7 +1352,7 @@
             };
 
             try {
-                const response = await fetch(`${API_BASE}/onboard`, {
+                const response = await fetchWithTimeout(`${API_BASE}/onboard`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
@@ -1355,7 +1408,7 @@
             };
 
             try {
-                const response = await fetch(`${API_BASE}/recommend`, {
+                const response = await fetchWithTimeout(`${API_BASE}/recommend`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
@@ -1526,7 +1579,7 @@
             };
 
             try {
-                const response = await fetch(`${API_BASE}/attempt`, {
+                const response = await fetchWithTimeout(`${API_BASE}/attempt`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
@@ -1606,7 +1659,7 @@
                     };
                     
                     try {
-                        const response = await fetch(`${API_BASE}/build_student`, {
+                        const response = await fetchWithTimeout(`${API_BASE}/build_student`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify(payload)
