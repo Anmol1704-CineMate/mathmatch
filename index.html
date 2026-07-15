@@ -1407,6 +1407,13 @@
                 student_id: studentId
             };
 
+            console.log("Sending request to /recommend:", {
+                url: `${API_BASE}/recommend`,
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: payload
+            });
+
             try {
                 const response = await fetchWithTimeout(`${API_BASE}/recommend`, {
                     method: "POST",
@@ -1429,6 +1436,7 @@
                     throw new Error("Empty recommendation array returned by API.");
                 }
             } catch (err) {
+                console.error("Exact error when /recommend failed:", err);
                 console.warn("Failed to call recommendation API. Running local SVD model...", err);
                 showToast("API offline, SVD fallback engine recommended a problem.", "info");
                 
