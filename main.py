@@ -112,6 +112,14 @@ Return ONLY a JSON object in this exact format, nothing else:
         temperature=0.7
     )
     result = response.choices[0].message.content
+    # Clean the result
+    result = result.strip()
+    result = result.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+    # Extract JSON if wrapped in markdown
+    if '```json' in result:
+        result = result.split('```json')[1].split('```')[0].strip()
+    elif '```' in result:
+        result = result.split('```')[1].split('```')[0].strip()
     return json.loads(result)
 
 def save_attempt(student_id, problem_id, is_correct):
