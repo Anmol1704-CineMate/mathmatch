@@ -159,14 +159,16 @@ def recommend():
     student_id = data['student_id']
     recommended_ids = recommend_questions(student_id)
     final_questions = []
+    generated = None
     for problem_id in recommended_ids:
         row = question_bank[question_bank['QuestionId'] == int(problem_id)]
         if len(row) == 0:
             continue
         original_text = row['QuestionText'].values[0]
         generated = generate_question(original_text)
-        generated['problem_id'] = problem_id
-        final_questions.append(generated)
+        if generated is not None:
+            generated['problem_id'] = problem_id
+            final_questions.append(generated)
     return jsonify({'questions': final_questions})
 
 @app.route('/onboard', methods=['POST'])
