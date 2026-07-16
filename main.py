@@ -120,7 +120,11 @@ Return ONLY a JSON object in this exact format, nothing else:
         result = result.split('```json')[1].split('```')[0].strip()
     elif '```' in result:
         result = result.split('```')[1].split('```')[0].strip()
-    return json.loads(result)
+    try:
+        return json.loads(result)
+    except Exception as e:
+        print(f"Groq bad response: {result}")
+        return None
 
 def save_attempt(student_id, problem_id, is_correct):
     db.collection('attempts').add({
