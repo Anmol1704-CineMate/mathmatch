@@ -877,7 +877,7 @@
         let wakingUpToastActive = false;
 
         async function fetchWithTimeout(url, options = {}) {
-            const timeout = 30000;
+            const timeout = 60000;
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
             
@@ -901,7 +901,7 @@
                 clearTimeout(warningId);
                 clearTimeout(id);
                 if (err.name === 'AbortError') {
-                    throw new Error(`Request timed out after 30 seconds`);
+                    throw new Error(`Request timed out after 60 seconds`);
                 }
                 throw err;
             }
@@ -1400,13 +1400,17 @@
             }
         }
 
+        let seenIds = [];
+
         // Fetch SVD recommended question via POST /recommend
         async function fetchRecommendationPhase2() {
             showLoading("Consulting SVD model...", "Calculating weak topics & difficulty sweet spot...");
             
-            const payload = {};
-            payload.student_id = studentId;
-            payload.seen_ids = seenIds;
+            const payload = {
+                student_id: studentId,
+                seen_ids: seenIds,
+                goal: selectedGoal
+            };
 
             console.log("Sending request to /recommend:", {
                 url: `${API_BASE}/recommend`,
@@ -1427,11 +1431,15 @@
                 }
 
                 const data = await response.json();
+                console.log("Render response:", JSON.stringify(data));
                 if (data && data.questions && data.questions.length > 0) {
-                    currentQuestion = normalizeQuestion(data.questions[0], totalCount);
+                    const question = data.questions[0];
+                    currentQuestion = normalizeQuestion(question, totalCount);
                     attemptedQuestionIds.add(currentQuestion.id);
                     seenIds = Array.from(attemptedQuestionIds);
                     renderQuestion();
+                    console.log("Pushing to seenIds:", question.problem_id, "Current seenIds:", seenIds);
+                    seenIds.push(question.problem_id);
                     hideLoading();
                     return;
                 } else {
@@ -1439,16 +1447,29 @@
                 }
             } catch (err) {
                 console.error("Exact error when /recommend failed:", err);
-                console.warn("Failed to call recommendation API. Running local SVD model...", err);
-                showToast("API offline, SVD fallback engine recommended a problem.", "info");
-                
-                // Fallback: Run local client-side SVD matrix multiplication
-                const fallbackQ = recommendQuestionLocal();
-                currentQuestion = normalizeQuestion(fallbackQ, totalCount);
-                attemptedQuestionIds.add(currentQuestion.id);
-                seenIds = Array.from(attemptedQuestionIds);
-                renderQuestion();
+
                 hideLoading();
+
+                // Show error message
+                document.getElementById("question-container").innerHTML = `
+                    <div style="text-align: center; color: var(--color-error); font-weight: 500;">
+                        Could not load question. Please try again.
+                    </div>
+                `;
+
+                // Render retry button
+                const optionsContainer = document.getElementById("options-container");
+                optionsContainer.innerHTML = "";
+
+                const retryBtn = document.createElement("button");
+                retryBtn.className = "btn";
+                retryBtn.style.margin = "0 auto";
+                retryBtn.textContent = "Retry";
+                retryBtn.addEventListener("click", fetchRecommendationPhase2);
+                optionsContainer.appendChild(retryBtn);
+
+                document.getElementById("btn-next-question").classList.add("hidden");
+                document.getElementById("feedback-container").classList.add("hidden");
             }
         }
 
