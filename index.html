@@ -635,6 +635,7 @@
           student_id: studentId,
           attempts: onboardAttempts
         });
+        console.log('Student factors built for:', studentId);
       } catch (e) {
         console.warn('build_student failed (non-fatal):', e.message);
       } finally {
@@ -670,6 +671,7 @@
         goal: selectedGoal
       });
 
+      console.log('Recommend response:', JSON.stringify(data));
       const questions = data.questions || [];
       if (questions.length === 0) throw new Error('No questions returned');
 
@@ -712,6 +714,7 @@
   }
 
   async function handlePhase2Answer(chosen, correct, problemId) {
+    console.log('Answer clicked:', chosen);
     const isCorrect = chosen === correct;
     recordAnswer(isCorrect);
 
