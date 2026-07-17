@@ -98,7 +98,9 @@ Here is a math question written by a professional math teacher:
 Your job is to generate 1 NEW question that:
 - Tests exactly the same math skill
 - Has different numbers or values
-- Is similar in difficulty
+- Is significantly harder than the original question
+- Uses more complex numbers or multi-step reasoning
+- Is appropriate for JEE/NEET level students
 - Is written in clean plain English (no LaTeX)
 
 Return ONLY a JSON object in this exact format, nothing else:
