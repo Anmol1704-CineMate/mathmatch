@@ -268,6 +268,10 @@
             user-select: none;
         }
 
+        .selector-card * {
+            pointer-events: none;
+        }
+
         .selector-card:hover {
             background: rgba(255, 255, 255, 0.04);
             border-color: var(--border-hover);
@@ -764,7 +768,7 @@
                     <span>2.</span> Choose your target Goal
                 </h3>
                 <div class="option-grid" id="goal-grid">
-                    <div class="selector-card" data-value="Class 9">
+                    <div class="selector-card" data-value="Class 9" onclick="alert('clicked')">
                         <span class="selector-card-icon">📐</span>
                         <span class="selector-card-label">Class 9</span>
                         <span class="selector-card-desc">School Syllabus</span>
