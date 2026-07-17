@@ -567,25 +567,28 @@
     const q = onboardQuestions[p1Index];
     const total = onboardQuestions.length;
 
+    console.log('Phase1 Q:', JSON.stringify(q));
+
     document.getElementById('p1-q-label').textContent = `Question ${p1Index + 1} of ${total}`;
     document.getElementById('p1-progress').style.width = ((p1Index / total) * 100) + '%';
     document.getElementById('p1-feedback').style.display = 'none';
     document.getElementById('p1-next-btn').style.display = 'none';
 
     const qText = document.getElementById('p1-question-text');
-    qText.textContent = q.QuestionText || q.question || '';
+    qText.textContent = q.question || q.QuestionText || '';
 
     const opts = document.getElementById('p1-options');
     opts.innerHTML = '';
 
     const keys = ['A', 'B', 'C', 'D'];
     keys.forEach(k => {
-      const text = q['Answer' + k + 'Text'] || q['option_' + k.toLowerCase()] || '';
+      // API returns q.A, q.B, q.C, q.D directly
+      const text = q[k] || '';
       if (!text) return;
       const btn = document.createElement('button');
       btn.className = 'opt-btn';
-      btn.innerHTML = `<span class="key">${k}.</span>${text}`;
-      btn.onclick = () => handlePhase1Answer(k, q.CorrectAnswer || q.correct_answer, q.QuestionId || q.problem_id);
+      btn.innerHTML = `<span class="key">${k}.</span> ${text}`;
+      btn.onclick = () => handlePhase1Answer(k, q.correct || q.CorrectAnswer, q.problem_id || q.QuestionId || p1Index);
       opts.appendChild(btn);
     });
 
@@ -694,15 +697,14 @@
     opts.innerHTML = '';
 
     const keys = ['A', 'B', 'C', 'D'];
-    const options = q.options || {};
-
     keys.forEach(k => {
-      const text = options[k] || q['Answer' + k + 'Text'] || q['option_' + k.toLowerCase()] || '';
-      if (!text) return;
+      // API returns q.A, q.B, q.C, q.D directly
+      const optText = q[k] || (q.options && q.options[k]) || '';
+      if (!optText) return;
       const btn = document.createElement('button');
       btn.className = 'opt-btn';
-      btn.innerHTML = `<span class="key">${k}.</span>${text}`;
-      btn.onclick = () => handlePhase2Answer(k, q.correct_answer || q.CorrectAnswer, q.problem_id);
+      btn.innerHTML = `<span class="key">${k}.</span> ${optText}`;
+      btn.onclick = () => handlePhase2Answer(k, q.correct || q.correct_answer || q.CorrectAnswer, q.problem_id || q.QuestionId);
       opts.appendChild(btn);
     });
 
