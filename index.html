@@ -1103,11 +1103,18 @@
         };
 
         // --- 3. ONBOARDING & DATA LOADING ---
-        window.addEventListener("DOMContentLoaded", () => {
+        function initApp() {
+            console.log("Initializing MathMatch App...");
             setupEventListeners();
             loadLocalFiles();
             startKeepAlivePing();
-        });
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initApp);
+        } else {
+            initApp();
+        }
 
         function startKeepAlivePing() {
             const sendPing = async () => {
@@ -1131,12 +1138,17 @@
         function setupEventListeners() {
             // Display name change
             const usernameInput = document.getElementById("username-input");
-            usernameInput.addEventListener("input", validateOnboardingEligibility);
+            usernameInput.addEventListener("input", () => {
+                console.log("Username input changed:", usernameInput.value);
+                validateOnboardingEligibility();
+            });
 
             // Goal selection
             const goalCards = document.querySelectorAll("#goal-grid .selector-card");
+            console.log(`Found ${goalCards.length} goal cards for binding click events.`);
             goalCards.forEach(card => {
                 card.addEventListener("click", () => {
+                    console.log("Goal card clicked:", card.dataset.value);
                     goalCards.forEach(c => c.classList.remove("selected"));
                     card.classList.add("selected");
                     selectedGoal = card.dataset.value;
@@ -1146,8 +1158,10 @@
 
             // Confidence selection
             const confidenceCards = document.querySelectorAll("#confidence-grid .selector-card");
+            console.log(`Found ${confidenceCards.length} confidence cards for binding click events.`);
             confidenceCards.forEach(card => {
                 card.addEventListener("click", () => {
+                    console.log("Confidence card clicked:", card.dataset.value);
                     confidenceCards.forEach(c => c.classList.remove("selected"));
                     card.classList.add("selected");
                     selectedConfidence = card.dataset.value;
@@ -1156,7 +1170,10 @@
             });
 
             // Start button
-            document.getElementById("btn-start").addEventListener("click", startPracticeRun);
+            document.getElementById("btn-start").addEventListener("click", () => {
+                console.log("Start button clicked. Launching quiz...");
+                startPracticeRun();
+            });
 
             // Next question button
             document.getElementById("btn-next-question").addEventListener("click", loadNextQuestion);
