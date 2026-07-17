@@ -2,3 +2,10 @@ firebase_key.json
 .env
 __pycache__/
 *.pyc
+*.pyo
+venv/
+env/
+.venv/
+scratch_debug.py
+*.log
+.DS_Store
