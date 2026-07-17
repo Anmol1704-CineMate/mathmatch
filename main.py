@@ -58,7 +58,11 @@ def build_student_factors(attempts):
         student_vec += lr * error * problem_vec
     return student_vec.tolist()
 
-def recommend_questions(student_id, top_n=5):
+def recommend_questions(student_id, seen_ids=None, top_n=5):
+    if seen_ids is None:
+        seen_ids = []
+    seen_ids_set = {str(x) for x in seen_ids}
+
     student_vec = None
     if str(student_id) in student_factors:
         student_vec = np.array(student_factors[str(student_id)])
@@ -77,6 +81,8 @@ def recommend_questions(student_id, top_n=5):
 
     scores = {}
     for problem_id, factors in problem_factors.items():
+        if str(problem_id) in seen_ids_set:
+            continue
         problem_vec = np.array(factors)
         predicted_score = np.dot(student_vec, problem_vec)
         scores[problem_id] = predicted_score
@@ -157,7 +163,8 @@ def attempt():
 def recommend():
     data = request.json
     student_id = data['student_id']
-    recommended_ids = recommend_questions(student_id)
+    seen_ids = data.get('seen_ids', [])
+    recommended_ids = recommend_questions(student_id, seen_ids=seen_ids)
     final_questions = []
     generated = None
     for problem_id in recommended_ids:

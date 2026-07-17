@@ -926,6 +926,7 @@
         
         // Tracking questions already attempted in Phase 2
         let attemptedQuestionIds = new Set();
+        let seenIds = [];
         
         // Local database files loaded in background
         let localQuestions = [];
@@ -1403,9 +1404,9 @@
         async function fetchRecommendationPhase2() {
             showLoading("Consulting SVD model...", "Calculating weak topics & difficulty sweet spot...");
             
-            const payload = {
-                student_id: studentId
-            };
+            const payload = {};
+            payload.student_id = studentId;
+            payload.seen_ids = seenIds;
 
             console.log("Sending request to /recommend:", {
                 url: `${API_BASE}/recommend`,
@@ -1429,6 +1430,7 @@
                 if (data && data.questions && data.questions.length > 0) {
                     currentQuestion = normalizeQuestion(data.questions[0], totalCount);
                     attemptedQuestionIds.add(currentQuestion.id);
+                    seenIds = Array.from(attemptedQuestionIds);
                     renderQuestion();
                     hideLoading();
                     return;
@@ -1444,6 +1446,7 @@
                 const fallbackQ = recommendQuestionLocal();
                 currentQuestion = normalizeQuestion(fallbackQ, totalCount);
                 attemptedQuestionIds.add(currentQuestion.id);
+                seenIds = Array.from(attemptedQuestionIds);
                 renderQuestion();
                 hideLoading();
             }
@@ -1769,6 +1772,7 @@
             if (candidates.length === 0) {
                 // Clear attempts if candidate pool runs out
                 attemptedQuestionIds.clear();
+                seenIds = [];
                 return recommendQuestionLocal();
             }
             
