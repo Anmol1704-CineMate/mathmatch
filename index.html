@@ -768,22 +768,22 @@
                     <span>2.</span> Choose your target Goal
                 </h3>
                 <div class="option-grid" id="goal-grid">
-                    <div class="selector-card" data-value="Class 9">
+                    <div class="selector-card" data-value="Class 9" onclick="selectGoal(this)">
                         <span class="selector-card-icon">📐</span>
                         <span class="selector-card-label">Class 9</span>
                         <span class="selector-card-desc">School Syllabus</span>
                     </div>
-                    <div class="selector-card" data-value="Class 10">
+                    <div class="selector-card" data-value="Class 10" onclick="selectGoal(this)">
                         <span class="selector-card-icon">📊</span>
                         <span class="selector-card-label">Class 10</span>
                         <span class="selector-card-desc">Board Exam Prep</span>
                     </div>
-                    <div class="selector-card" data-value="JEE">
+                    <div class="selector-card" data-value="JEE" onclick="selectGoal(this)">
                         <span class="selector-card-icon">🚀</span>
                         <span class="selector-card-label">JEE</span>
                         <span class="selector-card-desc">Engineering Aspirant</span>
                     </div>
-                    <div class="selector-card" data-value="NEET">
+                    <div class="selector-card" data-value="NEET" onclick="selectGoal(this)">
                         <span class="selector-card-icon">🩺</span>
                         <span class="selector-card-label">NEET</span>
                         <span class="selector-card-desc">Medical / Physics Math</span>
@@ -797,17 +797,17 @@
                     <span>3.</span> What is your current Math Confidence?
                 </h3>
                 <div class="option-grid" id="confidence-grid">
-                    <div class="selector-card" data-value="Beginner">
+                    <div class="selector-card" data-value="Beginner" onclick="selectConfidence(this)">
                         <span class="selector-card-icon">🌱</span>
                         <span class="selector-card-label">Beginner</span>
                         <span class="selector-card-desc">Needs core review</span>
                     </div>
-                    <div class="selector-card" data-value="Average">
+                    <div class="selector-card" data-value="Average" onclick="selectConfidence(this)">
                         <span class="selector-card-icon">🌿</span>
                         <span class="selector-card-label">Average</span>
                         <span class="selector-card-desc">Needs steady practice</span>
                     </div>
-                    <div class="selector-card" data-value="Strong">
+                    <div class="selector-card" data-value="Strong" onclick="selectConfidence(this)">
                         <span class="selector-card-icon">🌳</span>
                         <span class="selector-card-label">Strong</span>
                         <span class="selector-card-desc">Wants hard challenges</span>
@@ -875,6 +875,35 @@
     <div id="toast-container" class="toast-container"></div>
 
     <script>
+        console.log("[MathMatch] Script tag loaded and executing.");
+
+        // --- GLOBAL INLINE HANDLERS (bulletproof — no dependency on addEventListener) ---
+        function selectGoal(el) {
+            console.log("selectGoal called:", el.dataset.value);
+            document.querySelectorAll("#goal-grid .selector-card").forEach(c => c.classList.remove("selected"));
+            el.classList.add("selected");
+            selectedGoal = el.dataset.value;
+            validateOnboardingEligibility();
+        }
+
+        function selectConfidence(el) {
+            console.log("selectConfidence called:", el.dataset.value);
+            document.querySelectorAll("#confidence-grid .selector-card").forEach(c => c.classList.remove("selected"));
+            el.classList.add("selected");
+            selectedConfidence = el.dataset.value;
+            validateOnboardingEligibility();
+        }
+
+        function validateOnboardingEligibility() {
+            const name = document.getElementById("username-input").value.trim();
+            const btnStart = document.getElementById("btn-start");
+            if (name.length > 0 && selectedGoal && selectedConfidence) {
+                btnStart.removeAttribute("disabled");
+            } else {
+                btnStart.setAttribute("disabled", "true");
+            }
+        }
+
         // --- 1. STATE & ENVIRONMENT VARIABLES ---
         const API_BASE = "https://mathmatch-production.up.railway.app";
         
@@ -1119,6 +1148,7 @@
         } else {
             initApp();
         }
+        console.log("[MathMatch] initApp scheduled/called. readyState:", document.readyState);
 
         function startKeepAlivePing() {
             const sendPing = async () => {
@@ -1140,59 +1170,32 @@
         }
 
         function setupEventListeners() {
-            // Display name change
+            console.log("[MathMatch] setupEventListeners called.");
+
+            // Display name input — also bind inline via oninput on the element
             const usernameInput = document.getElementById("username-input");
-            usernameInput.addEventListener("input", () => {
-                console.log("Username input changed:", usernameInput.value);
-                validateOnboardingEligibility();
-            });
-
-            // Goal selection
-            const goalCards = document.querySelectorAll("#goal-grid .selector-card");
-            console.log(`Found ${goalCards.length} goal cards for binding click events.`);
-            goalCards.forEach(card => {
-                card.addEventListener("click", () => {
-                    console.log("Goal card clicked:", card.dataset.value);
-                    goalCards.forEach(c => c.classList.remove("selected"));
-                    card.classList.add("selected");
-                    selectedGoal = card.dataset.value;
-                    validateOnboardingEligibility();
-                });
-            });
-
-            // Confidence selection
-            const confidenceCards = document.querySelectorAll("#confidence-grid .selector-card");
-            console.log(`Found ${confidenceCards.length} confidence cards for binding click events.`);
-            confidenceCards.forEach(card => {
-                card.addEventListener("click", () => {
-                    console.log("Confidence card clicked:", card.dataset.value);
-                    confidenceCards.forEach(c => c.classList.remove("selected"));
-                    card.classList.add("selected");
-                    selectedConfidence = card.dataset.value;
-                    validateOnboardingEligibility();
-                });
-            });
+            if (usernameInput) {
+                usernameInput.addEventListener("input", validateOnboardingEligibility);
+                usernameInput.setAttribute("oninput", "validateOnboardingEligibility()");
+            }
 
             // Start button
-            document.getElementById("btn-start").addEventListener("click", () => {
-                console.log("Start button clicked. Launching quiz...");
-                startPracticeRun();
-            });
+            const btnStart = document.getElementById("btn-start");
+            if (btnStart) {
+                btnStart.addEventListener("click", startPracticeRun);
+                btnStart.setAttribute("onclick", "startPracticeRun()");
+            }
 
             // Next question button
-            document.getElementById("btn-next-question").addEventListener("click", loadNextQuestion);
+            const btnNext = document.getElementById("btn-next-question");
+            if (btnNext) {
+                btnNext.addEventListener("click", loadNextQuestion);
+            }
+
+            console.log("[MathMatch] setupEventListeners complete.");
         }
 
-        function validateOnboardingEligibility() {
-            const name = document.getElementById("username-input").value.trim();
-            const btnStart = document.getElementById("btn-start");
-            
-            if (name.length > 0 && selectedGoal && selectedConfidence) {
-                btnStart.removeAttribute("disabled");
-            } else {
-                btnStart.setAttribute("disabled", "true");
-            }
-        }
+        // validateOnboardingEligibility is defined at top of script (global inline handler)
 
         async function loadLocalFiles() {
             console.log("Initializing local file fetches...");
