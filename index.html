@@ -768,7 +768,7 @@
                     <span>2.</span> Choose your target Goal
                 </h3>
                 <div class="option-grid" id="goal-grid">
-                    <div class="selector-card" data-value="Class 9" onclick="alert('clicked')">
+                    <div class="selector-card" data-value="Class 9">
                         <span class="selector-card-icon">📐</span>
                         <span class="selector-card-label">Class 9</span>
                         <span class="selector-card-desc">School Syllabus</span>
@@ -881,7 +881,7 @@
         let wakingUpToastActive = false;
 
         async function fetchWithTimeout(url, options = {}) {
-            const timeout = 60000;
+            const timeout = 90000;
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
             
@@ -905,7 +905,7 @@
                 clearTimeout(warningId);
                 clearTimeout(id);
                 if (err.name === 'AbortError') {
-                    throw new Error(`Request timed out after 60 seconds`);
+                    throw new Error(`Request timed out after 90 seconds`);
                 }
                 throw err;
             }
@@ -1209,22 +1209,9 @@
                 console.warn("Could not load question_bank.csv locally. Falls back to embedded bank.", err);
             }
 
-            // 2. Fetch Misconception Mapping CSV
-            try {
-                const response = await fetch("eedi-mining-misconceptions-in-mathematics/misconception_mapping.csv");
-                if (response.ok) {
-                    const text = await response.text();
-                    const parsed = parseCSV(text);
-                    parsed.forEach(row => {
-                        if (row.MisconceptionId && row.MisconceptionName) {
-                            localMisconceptions[row.MisconceptionId.toString()] = row.MisconceptionName;
-                        }
-                    });
-                    console.log(`Loaded ${Object.keys(localMisconceptions).length} misconception diagnoses.`);
-                }
-            } catch (err) {
-                console.warn("Could not load misconception_mapping.csv. Falls back to embedded mapping.", err);
-            }
+            // 2. Misconceptions (using embedded mapping, no CSV fetch needed)
+            const misconceptions = {};
+            console.log("Using embedded misconception mapping (no CSV fetch).");
 
             // 3. Fetch pre-trained student factors JSON
             try {
@@ -1457,10 +1444,12 @@
                     const question = data.questions[0];
                     currentQuestion = normalizeQuestion(question, totalCount);
                     attemptedQuestionIds.add(currentQuestion.id);
-                    seenIds = Array.from(attemptedQuestionIds);
+                    // Track seen question IDs for deduplication
+                    if (question.problem_id && !seenIds.includes(String(question.problem_id))) {
+                        seenIds.push(String(question.problem_id));
+                    }
+                    console.log("Updated seenIds:", seenIds);
                     renderQuestion();
-                    console.log("Pushing to seenIds:", question.problem_id, "Current seenIds:", seenIds);
-                    seenIds.push(question.problem_id);
                     hideLoading();
                     return;
                 } else {
