@@ -279,6 +279,67 @@
       font-size: 0.95rem;
     }
 
+    .pill-btn {
+      background: var(--card);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .pill-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .dashboard-skill-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .dashboard-skill-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.88rem;
+    }
+    .dashboard-skill-name {
+      font-weight: 700;
+    }
+    .dashboard-skill-status {
+      font-size: 0.76rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    .status-mastered { background: rgba(34,197,94,0.15); color: var(--success); }
+    .status-improving { background: rgba(234,179,8,0.15); color: #eab308; }
+    .status-needs-work { background: rgba(239,68,68,0.15); color: var(--error); }
+    
+    .dashboard-progress-bar {
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .dashboard-progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.5s ease-out;
+    }
+    .fill-mastered { background: var(--success); }
+    .fill-improving { background: #eab308; }
+    .fill-needs-work { background: var(--error); }
+
     /* ── Responsive ── */
     @media (max-width: 500px) {
       .options-grid { grid-template-columns: 1fr; }
@@ -297,10 +358,13 @@
 <!-- Header -->
 <header id="header">
   <div class="brand">Math<span>Match</span></div>
-  <div id="header-stats" style="display:none">
-    <div class="pill">🔥 <span id="stat-streak">0</span> Streak</div>
-    <div class="pill">🎯 <span id="stat-acc">0%</span> Acc</div>
-    <div class="pill" id="stat-name-pill" style="display:none">👤 <span id="stat-name"></span></div>
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    <button id="btn-progress" class="pill-btn" style="display:none;" onclick="showProgressDashboard()">📊 My Progress</button>
+    <div id="header-stats" style="display:none">
+      <div class="pill">🔥 <span id="stat-streak">0</span> Streak</div>
+      <div class="pill">🎯 <span id="stat-acc">0%</span> Acc</div>
+      <div class="pill" id="stat-name-pill" style="display:none">👤 <span id="stat-name"></span></div>
+    </div>
   </div>
 </header>
 
@@ -405,6 +469,41 @@
       <div id="p2-error" class="error-box" style="display:none;">
         <div>Could not load question. Please try again.</div>
         <button class="btn secondary" style="width:auto;margin:1rem auto 0;display:inline-block;" onclick="fetchPhase2Question()">Retry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SCREEN 4 — SKILL DASHBOARD
+  ══════════════════════════════════════════════ -->
+  <div id="screen-dashboard" class="screen">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <div class="phase-badge">Progress Analytics</div>
+      <button class="pill-btn" onclick="exitDashboard()">← Back to Practice</button>
+    </div>
+    
+    <div class="card">
+      <h2 style="margin-bottom: 0.5rem;">Your Skill Mastery</h2>
+      <h3 style="margin-bottom: 1.5rem;">Real-time Bayesian Knowledge Tracing (BKT) Calibration</h3>
+      
+      <!-- List of BKT Skills -->
+      <div id="dashboard-skills-list" style="display:flex; flex-direction:column; gap:1.2rem;">
+        <!-- Skill items injected here dynamically -->
+      </div>
+      
+      <div class="divider"></div>
+      
+      <!-- Weakest Skill Card -->
+      <div id="weakest-skill-card" style="background: rgba(239,68,68,0.08); border: 1.5px dashed var(--error); border-radius:var(--radius); padding:1.2rem; display:none; flex-direction:column; gap:0.6rem; align-items:flex-start;">
+        <div style="display:flex; align-items:center; gap:0.4rem; font-weight:700; color:var(--error);">
+          <span>⚠️</span> Focus Recommendation
+        </div>
+        <div style="color:var(--text-muted); font-size:0.9rem;">
+          Your weakest area is <strong id="weakest-skill-name" style="color:var(--text)">Algebra</strong> (Estimated mastery: <span id="weakest-skill-pct">0%</span>).
+        </div>
+        <button class="btn" style="margin-top:0.5rem; background:var(--error);" onclick="exitDashboard()">
+          Practise now →
+        </button>
       </div>
     </div>
   </div>
@@ -542,6 +641,7 @@
   async function startOnboarding() {
     studentId = 'user_' + Date.now();
     seenIds = [];
+    document.getElementById('btn-progress').style.display = 'inline-flex';
     showScreen('screen-phase2');
     updateStats();
     fetchPhase2Question();
@@ -747,6 +847,86 @@
     }).then(res => {
       console.log('Attempt logged successfully:', JSON.stringify(res));
     }).catch(e => console.warn('Attempt post failed:', e.message));
+  }
+
+  async function showProgressDashboard() {
+    showLoading('Fetching your progress profile...');
+    try {
+      const data = await apiPost('/profile', { student_id: studentId });
+      console.log('Profile response:', JSON.stringify(data));
+      
+      const skills = data.skills || {};
+      const container = document.getElementById('dashboard-skills-list');
+      container.innerHTML = '';
+      
+      let weakestSkill = null;
+      let lowestScore = 999;
+      
+      // Render all skills
+      Object.keys(skills).forEach(skillName => {
+        const score = skills[skillName];
+        const pct = Math.round(score * 100);
+        
+        // Track weakest skill
+        if (score < lowestScore) {
+          lowestScore = score;
+          weakestSkill = skillName;
+        }
+        
+        let statusText = '';
+        let statusClass = '';
+        let fillClass = '';
+        
+        if (score >= 0.85) {
+          statusText = 'Mastered';
+          statusClass = 'status-mastered';
+          fillClass = 'fill-mastered';
+        } else if (score >= 0.40) {
+          statusText = 'Improving';
+          statusClass = 'status-improving';
+          fillClass = 'fill-improving';
+        } else {
+          statusText = 'Needs work';
+          statusClass = 'status-needs-work';
+          fillClass = 'fill-needs-work';
+        }
+        
+        const skillItem = document.createElement('div');
+        skillItem.className = 'dashboard-skill-item';
+        skillItem.innerHTML = `
+          <div class="dashboard-skill-meta">
+            <div>
+              <span class="dashboard-skill-name">${skillName}</span>
+              <span style="color:var(--text-muted); font-size:0.8rem; margin-left:0.4rem;">${pct}%</span>
+            </div>
+            <span class="dashboard-skill-status ${statusClass}">${statusText}</span>
+          </div>
+          <div class="dashboard-progress-bar">
+            <div class="dashboard-progress-fill ${fillClass}" style="width: ${pct}%"></div>
+          </div>
+        `;
+        container.appendChild(skillItem);
+      });
+      
+      // Update weakest skill highlight card
+      if (weakestSkill) {
+        document.getElementById('weakest-skill-name').textContent = weakestSkill;
+        document.getElementById('weakest-skill-pct').textContent = Math.round(lowestScore * 100) + '%';
+        document.getElementById('weakest-skill-card').style.display = 'flex';
+      } else {
+        document.getElementById('weakest-skill-card').style.display = 'none';
+      }
+      
+      showScreen('screen-dashboard');
+    } catch (e) {
+      alert('Could not load profile: ' + e.message);
+    } finally {
+      hideLoading();
+    }
+  }
+
+  function exitDashboard() {
+    showScreen('screen-phase2');
   }
 
   // ────────────────────────────────────────────────
