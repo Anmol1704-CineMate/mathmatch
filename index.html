@@ -546,6 +546,15 @@
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    
+    const btnProgress = document.getElementById('btn-progress');
+    if (btnProgress) {
+      if (id === 'screen-phase2' || id === 'screen-dashboard') {
+        btnProgress.style.display = 'inline-flex';
+      } else {
+        btnProgress.style.display = 'none';
+      }
+    }
   }
 
   function showLoading(msg = 'Please wait...') {
