@@ -67,9 +67,9 @@ def get_skill(subject_name):
 question_bank['skill'] = question_bank['SubjectName'].apply(get_skill)
 
 # ── BKT Parameters ───────────────────────────────────────────
-P_GUESS = 0.2
+P_GUESS = 0.25
 P_SLIP = 0.1
-P_LEARN = 0.3
+P_LEARN = 0.1
 
 # ── BKT Functions ────────────────────────────────────────────
 def create_student_profile(student_id):
