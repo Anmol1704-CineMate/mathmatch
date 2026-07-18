@@ -396,7 +396,7 @@
        SCREEN 3 — PHASE 2: SVD ADAPTIVE
   ══════════════════════════════════════════════ -->
   <div id="screen-phase2" class="screen">
-    <div class="phase-badge">Phase 2 · Adaptive SVD</div>
+    <div class="phase-badge">Adaptive BKT Practice</div>
     <div class="card">
       <div id="p2-question-text" style="font-size:1.05rem;line-height:1.7;margin-bottom:1.5rem;"></div>
       <div class="options-grid" id="p2-options"></div>
@@ -416,7 +416,7 @@
   // ────────────────────────────────────────────────
   // CONFIG
   // ────────────────────────────────────────────────
-  const API = 'https://mathmatch-production.up.railway.app';
+  const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:5000' : 'https://mathmatch-production.up.railway.app';
 
   // ────────────────────────────────────────────────
   // STATE
@@ -434,6 +434,7 @@
   // Phase 2
   let seenIds          = [];  // outer scope — persists across calls
   let p2Question       = null;
+  let currentQuestionSkill = '';
 
   // Stats
   let totalAnswered    = 0;
@@ -539,25 +540,11 @@
   }
 
   async function startOnboarding() {
-    showLoading('Fetching onboarding questions...');
-    try {
-      const data = await apiPost('/onboard', { goal: selectedGoal, confidence: selectedConf });
-      onboardQuestions = data.questions || [];
-      if (onboardQuestions.length === 0) throw new Error('No questions returned');
-
-      // Generate a simple student ID
-      studentId = 'user_' + Date.now();
-      p1Index = 0;
-      onboardAttempts = [];
-
-      showScreen('screen-phase1');
-      updateStats();
-      renderPhase1Question();
-    } catch (e) {
-      alert('Failed to start: ' + e.message + '\nPlease check your connection and try again.');
-    } finally {
-      hideLoading();
-    }
+    studentId = 'user_' + Date.now();
+    seenIds = [];
+    showScreen('screen-phase2');
+    updateStats();
+    fetchPhase2Question();
   }
 
   // ────────────────────────────────────────────────
@@ -652,7 +639,7 @@
   }
 
   // ────────────────────────────────────────────────
-  // SCREEN 3 — PHASE 2 (SVD ADAPTIVE)
+  // SCREEN 3 — PHASE 2 (BKT ADAPTIVE)
   // ────────────────────────────────────────────────
   async function fetchPhase2Question() {
     // Reset UI
@@ -672,14 +659,18 @@
       });
 
       console.log('Recommend response:', JSON.stringify(data));
-      const questions = data.questions || [];
-      if (questions.length === 0) throw new Error('No questions returned');
+      if (!data || !data.question) {
+        throw new Error('No question returned');
+      }
 
-      p2Question = questions[0];
+      p2Question = data;
+      currentQuestionSkill = data.skill || '';
 
-      // Push to seenIds immediately after receiving
-      const pid = String(p2Question.problem_id);
-      if (!seenIds.includes(pid)) seenIds.push(pid);
+      // Push to seenIds immediately after receiving (if from eedi bank)
+      if (p2Question.question_id !== null && p2Question.question_id !== undefined) {
+        const pid = Number(p2Question.question_id);
+        if (!seenIds.includes(pid)) seenIds.push(pid);
+      }
 
       renderPhase2Question();
     } catch (e) {
@@ -692,16 +683,25 @@
 
   function renderPhase2Question() {
     const q = p2Question;
+    console.log('Phase2 Q:', JSON.stringify(q));
+
     const qText = document.getElementById('p2-question-text');
     qText.textContent = q.question || q.QuestionText || '';
 
     const opts = document.getElementById('p2-options');
     opts.innerHTML = '';
 
+    // Show skill in the badge if available
+    const phaseBadge = document.querySelector('#screen-phase2 .phase-badge');
+    if (phaseBadge) {
+      phaseBadge.textContent = `Adaptive BKT Practice` + (currentQuestionSkill ? ` · ${currentQuestionSkill}` : '');
+    }
+
     const keys = ['A', 'B', 'C', 'D'];
     keys.forEach(k => {
-      // API returns q.A, q.B, q.C, q.D directly
-      const optText = q[k] || (q.options && q.options[k]) || '';
+      // API returns option_a, option_b, option_c, option_d or direct options A/B/C/D
+      const keyLower = k.toLowerCase();
+      const optText = q['option_' + keyLower] || q[k] || (q.options && q.options[k]) || '';
       if (!optText) return;
       const btn = document.createElement('button');
       btn.className = 'opt-btn';
@@ -721,7 +721,7 @@
     // Highlight
     document.querySelectorAll('#p2-options .opt-btn').forEach(btn => {
       btn.disabled = true;
-      const key = btn.querySelector('.key').textContent.replace('.', '');
+      const key = btn.querySelector('.key').textContent.replace('.', '').trim();
       if (key === correct) btn.classList.add('correct');
       else if (key === chosen) btn.classList.add('wrong');
     });
@@ -742,8 +742,10 @@
     // Post attempt in background (non-blocking)
     apiPost('/attempt', {
       student_id: studentId,
-      problem_id: String(problemId),
+      skill: currentQuestionSkill,
       is_correct: isCorrect
+    }).then(res => {
+      console.log('Attempt logged successfully:', JSON.stringify(res));
     }).catch(e => console.warn('Attempt post failed:', e.message));
   }
 
