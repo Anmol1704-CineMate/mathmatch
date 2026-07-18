@@ -375,61 +375,14 @@
   ══════════════════════════════════════════════ -->
   <div id="screen-setup" class="screen active">
     <div class="card">
-      <h2>Master Mathematics</h2>
-      <h3>Adaptive AI practice — calibrated to you.</h3>
+      <h2>Master Maths</h2>
+      <h3>Find your weak spots. Fix them fast.</h3>
       <div class="divider"></div>
 
       <!-- Name -->
-      <div class="section-label">1. Your Display Name</div>
+      <div class="section-label">Your Display Name</div>
       <input type="text" id="name-input" placeholder="e.g. Rahul" autocomplete="off"
              oninput="onNameInput()" />
-
-      <div class="divider"></div>
-
-      <!-- Goal -->
-      <div class="section-label">2. Target Goal</div>
-      <div class="selector-grid">
-        <div class="sel-card" onclick="selectGoal(this)" data-value="Class 9">
-          <div class="icon">📐</div>
-          <div class="label">Class 9</div>
-          <div class="desc">School Syllabus</div>
-        </div>
-        <div class="sel-card" onclick="selectGoal(this)" data-value="Class 10">
-          <div class="icon">📊</div>
-          <div class="label">Class 10</div>
-          <div class="desc">Board Exam Prep</div>
-        </div>
-        <div class="sel-card" onclick="selectGoal(this)" data-value="JEE">
-          <div class="icon">🚀</div>
-          <div class="label">JEE</div>
-          <div class="desc">Engineering Aspirant</div>
-        </div>
-        <div class="sel-card" onclick="selectGoal(this)" data-value="NEET">
-          <div class="icon">🩺</div>
-          <div class="label">NEET</div>
-          <div class="desc">Medical / Physics Math</div>
-        </div>
-      </div>
-
-      <!-- Confidence -->
-      <div class="section-label">3. Math Confidence</div>
-      <div class="selector-grid">
-        <div class="sel-card" onclick="selectConfidence(this)" data-value="Beginner">
-          <div class="icon">🌱</div>
-          <div class="label">Beginner</div>
-          <div class="desc">Needs core review</div>
-        </div>
-        <div class="sel-card" onclick="selectConfidence(this)" data-value="Average">
-          <div class="icon">🌿</div>
-          <div class="label">Average</div>
-          <div class="desc">Steady practice</div>
-        </div>
-        <div class="sel-card" onclick="selectConfidence(this)" data-value="Strong">
-          <div class="icon">🌳</div>
-          <div class="label">Strong</div>
-          <div class="desc">Hard challenges</div>
-        </div>
-      </div>
 
       <button class="btn" id="btn-start" disabled onclick="startOnboarding()">
         Start Practice Run →
@@ -623,27 +576,13 @@
   // ────────────────────────────────────────────────
   // SCREEN 1 — SETUP
   // ────────────────────────────────────────────────
-  function selectGoal(el) {
-    document.querySelectorAll('[onclick="selectGoal(this)"]').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedGoal = el.dataset.value;
-    checkStartEligible();
-  }
-
-  function selectConfidence(el) {
-    document.querySelectorAll('[onclick="selectConfidence(this)"]').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    selectedConf = el.dataset.value;
-    checkStartEligible();
-  }
-
   function onNameInput() {
     studentName = document.getElementById('name-input').value.trim();
     checkStartEligible();
   }
 
   function checkStartEligible() {
-    const ok = studentName.length > 0 && selectedGoal && selectedConf;
+    const ok = studentName.length > 0;
     document.getElementById('btn-start').disabled = !ok;
   }
 
