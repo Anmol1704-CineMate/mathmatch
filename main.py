@@ -18,11 +18,17 @@ client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 # ── Firebase Setup ───────────────────────────────────────────
 if not firebase_admin._apps:
     firebase_key = os.environ.get("FIREBASE_CREDENTIALS")
-    cred_dict = json.loads(firebase_key)
-    cred = credentials.Certificate(cred_dict)
-    firebase_admin.initialize_app(cred)
+    if firebase_key:
+        try:
+            cred_dict = json.loads(firebase_key)
+            if 'private_key' in cred_dict:
+                cred_dict['private_key'] = cred_dict['private_key'].replace('\\n', '\n')
+            cred = credentials.Certificate(cred_dict)
+            firebase_admin.initialize_app(cred)
+        except Exception as e:
+            print(f"Error loading Firebase credentials from env: {e}")
 
-db = firestore.client()
+db = firestore.client() if firebase_admin._apps else None
 
 # ── Load Question Bank ───────────────────────────────────────
 question_bank = pd.read_csv('question_bank.csv')
@@ -102,49 +108,65 @@ def pick_question(skill, seen_ids=[]):
     question = unseen.sample(1).iloc[0]
     return question
 
-def generate_question(skill, p_known):
+def generate_question_v2(skill, p_known):
+    
     if p_known < 0.4:
         difficulty = "easy"
+        difficulty_guide = "suitable for a student just starting this topic"
     elif p_known < 0.7:
         difficulty = "medium"
+        difficulty_guide = "suitable for a student with basic understanding"
     else:
         difficulty = "hard"
+        difficulty_guide = "suitable for a student who knows this topic well"
+    
+    prompt = f"""Generate a {difficulty} {skill} multiple choice question for a Class 10 student aged 14-16.
+Difficulty guide: {difficulty_guide}
 
-    prompt = f"""Generate a {difficulty} difficulty {skill} question for a Class 10 / JEE student.
+Strict rules:
+- Exactly one correct answer
+- All 4 options must be plausible — no obviously wrong options
+- Solvable without a calculator
+- No images, diagrams or tables required
+- Use clean simple mathematical notation
+- Question must be unambiguous
 
-Return ONLY a JSON object in this exact format:
+Return ONLY a JSON object, no markdown, no explanation:
 {{
     "question": "question text here",
-    "option_a": "option A text",
-    "option_b": "option B text",
-    "option_c": "option C text",
-    "option_d": "option D text",
+    "option_a": "first option",
+    "option_b": "second option",
+    "option_c": "third option",
+    "option_d": "fourth option",
     "correct": "A or B or C or D",
-    "explanation": "why this answer is correct"
-}}
-
-No extra text. No markdown. Just the JSON."""
+    "explanation": "clear step by step solution showing why the answer is correct"
+}}"""
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}]
     )
+    
+    content = response.choices[0].message.content
+    content = content.replace('```json', '').replace('```', '').strip()
     try:
-        question = json.loads(response.choices[0].message.content)
+        question = json.loads(content)
         return question
-    except:
+    except Exception as e:
+        print(f"Error parsing JSON from Groq response: {e}")
         return None
 
 # ── Firebase Functions ────────────────────────────────────────
 def save_student(student):
-    db.collection('students').document(student['student_id']).set(student)
+    if db:
+        db.collection('students').document(student['student_id']).set(student)
 
 def load_student(student_id):
-    doc = db.collection('students').document(student_id).get()
-    if doc.exists:
-        return doc.to_dict()
-    else:
-        return create_student_profile(student_id)
+    if db:
+        doc = db.collection('students').document(student_id).get()
+        if doc.exists:
+            return doc.to_dict()
+    return create_student_profile(student_id)
 
 # ── Flask Endpoints ───────────────────────────────────────────
 @app.route('/recommend', methods=['POST'])
@@ -158,7 +180,7 @@ def recommend():
     question = pick_question(skill, seen_ids)
 
     if question is None:
-        groq_question = generate_question(skill, student['skills'][skill])
+        groq_question = generate_question_v2(skill, student['skills'][skill])
         if groq_question is None:
             return jsonify({'error': 'Could not generate question'}), 500
         return jsonify({
@@ -170,7 +192,18 @@ def recommend():
             'option_c': groq_question['option_c'],
             'option_d': groq_question['option_d'],
             'correct': groq_question['correct'],
-            'question_id': None
+            'explanation': groq_question.get('explanation', ''),
+            'question_id': None,
+            'questions': [{
+                'question': groq_question['question'],
+                'A': groq_question['option_a'],
+                'B': groq_question['option_b'],
+                'C': groq_question['option_c'],
+                'D': groq_question['option_d'],
+                'correct': groq_question['correct'],
+                'explanation': groq_question.get('explanation', ''),
+                'problem_id': None
+            }]
         })
 
     return jsonify({
@@ -182,18 +215,27 @@ def recommend():
         'option_c': question['AnswerCText'],
         'option_d': question['AnswerDText'],
         'correct': question['CorrectAnswer'],
-        'question_id': int(question['QuestionId'])
+        'question_id': int(question['QuestionId']),
+        'questions': [{
+            'question': question['QuestionText'],
+            'A': question['AnswerAText'],
+            'B': question['AnswerBText'],
+            'C': question['AnswerCText'],
+            'D': question['AnswerDText'],
+            'correct': question['CorrectAnswer'],
+            'problem_id': int(question['QuestionId'])
+        }]
     })
 
 @app.route('/attempt', methods=['POST'])
 def attempt():
     data = request.json
     student_id = data['student_id']
-    skill = data['skill']
+    skill = data.get('skill', 'Algebra')
     is_correct = data['is_correct']
 
     student = load_student(student_id)
-    old_score = student['skills'][skill]
+    old_score = student['skills'].get(skill, 0.3)
     new_score = update_skill(old_score, is_correct)
     student['skills'][skill] = new_score
     save_student(student)
@@ -217,4 +259,5 @@ def profile():
 
 # ── Run Server ────────────────────────────────────────────────
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
