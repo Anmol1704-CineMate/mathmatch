@@ -110,16 +110,31 @@ def pick_question(skill, seen_ids=[]):
 
 def generate_question_v2(skill, p_known):
     
-    if p_known < 0.4:
+    if p_known < 0.35:
+        difficulty = "very easy"
+        difficulty_guide = "single step problem, direct formula application, no multi-step thinking required"
+    elif p_known < 0.45:
         difficulty = "easy"
-        difficulty_guide = "suitable for a student just starting this topic"
-    elif p_known < 0.7:
+        difficulty_guide = "straightforward calculation involving one concept, minimal steps"
+    elif p_known < 0.52:
+        difficulty = "easy-medium"
+        difficulty_guide = "two step problem using a familiar concept, slightly more thinking required"
+    elif p_known < 0.60:
         difficulty = "medium"
-        difficulty_guide = "suitable for a student with basic understanding"
-    else:
+        difficulty_guide = "requires applying the concept in a slightly new context, 2-3 steps"
+    elif p_known < 0.68:
+        difficulty = "medium-hard"
+        difficulty_guide = "multi step problem requiring some deeper thinking, not immediately obvious"
+    elif p_known < 0.75:
         difficulty = "hard"
-        difficulty_guide = "suitable for a student who knows this topic well"
-    
+        difficulty_guide = "combines two concepts together, exam style question, requires planning"
+    elif p_known < 0.85:
+        difficulty = "very hard"
+        difficulty_guide = "complex multi step problem, competitive exam level, requires strong understanding"
+    else:
+        difficulty = "expert"
+        difficulty_guide = "mastery level question, hardest possible, olympiad or top exam standard"
+
     prompt = f"""Generate a {difficulty} {skill} multiple choice question for a Class 10 student aged 14-16.
 Difficulty guide: {difficulty_guide}
 
@@ -146,14 +161,13 @@ Return ONLY a JSON object, no markdown, no explanation:
         model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}]
     )
-    
-    content = response.choices[0].message.content
-    content = content.replace('```json', '').replace('```', '').strip()
+
     try:
+        content = response.choices[0].message.content
+        content = content.replace('```json', '').replace('```', '').strip()
         question = json.loads(content)
         return question
-    except Exception as e:
-        print(f"Error parsing JSON from Groq response: {e}")
+    except:
         return None
 
 # ── Firebase Functions ────────────────────────────────────────
@@ -250,5 +264,19 @@ def profile():
 
 # ── Run Server ────────────────────────────────────────────────
 if __name__ == '__main__':
+    # Test all 8 levels
+    test_scores = [0.30, 0.38, 0.48, 0.55, 0.63, 0.70, 0.78, 0.87]
+
+    for score in test_scores:
+        try:
+            result = generate_question_v2('Algebra', p_known=score)
+            if result:
+                print(f"P(known)={score} → {result['question'][:60]}...")
+            else:
+                print(f"P(known)={score} → ⚠️ Groq returned bad JSON — retrying skipped")
+        except Exception as e:
+            print(f"P(known)={score} → ⚠️ Groq call failed: {e}")
+        print()
+
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
