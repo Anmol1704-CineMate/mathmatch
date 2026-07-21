@@ -177,12 +177,12 @@ def recommend():
 
     student = load_student(student_id)
     skill = pick_skill(student)
-    question = pick_question(skill, seen_ids)
+    p_known = student['skills'][skill]
 
-    if question is None:
-        groq_question = generate_question_v2(skill, student['skills'][skill])
-        if groq_question is None:
-            return jsonify({'error': 'Could not generate question'}), 500
+    # Step 1 — Try Groq first (PRIMARY)
+    groq_question = generate_question_v2(skill, p_known)
+
+    if groq_question is not None:
         return jsonify({
             'source': 'groq',
             'skill': skill,
@@ -192,40 +192,31 @@ def recommend():
             'option_c': groq_question['option_c'],
             'option_d': groq_question['option_d'],
             'correct': groq_question['correct'],
-            'explanation': groq_question.get('explanation', ''),
-            'question_id': None,
-            'questions': [{
-                'question': groq_question['question'],
-                'A': groq_question['option_a'],
-                'B': groq_question['option_b'],
-                'C': groq_question['option_c'],
-                'D': groq_question['option_d'],
-                'correct': groq_question['correct'],
-                'explanation': groq_question.get('explanation', ''),
-                'problem_id': None
-            }]
+            'explanation': groq_question['explanation'],
+            'question_id': None
         })
 
-    return jsonify({
-        'source': 'eedi',
-        'skill': skill,
-        'question': question['QuestionText'],
-        'option_a': question['AnswerAText'],
-        'option_b': question['AnswerBText'],
-        'option_c': question['AnswerCText'],
-        'option_d': question['AnswerDText'],
-        'correct': question['CorrectAnswer'],
-        'question_id': int(question['QuestionId']),
-        'questions': [{
-            'question': question['QuestionText'],
-            'A': question['AnswerAText'],
-            'B': question['AnswerBText'],
-            'C': question['AnswerCText'],
-            'D': question['AnswerDText'],
-            'correct': question['CorrectAnswer'],
-            'problem_id': int(question['QuestionId'])
-        }]
-    })
+    # Step 2 — Groq failed, try Eedi (BACKUP)
+    eedi_question = pick_question(skill, seen_ids)
+
+    if eedi_question is not None:
+        return jsonify({
+            'source': 'eedi',
+            'skill': skill,
+            'question': eedi_question['QuestionText'],
+            'option_a': eedi_question['AnswerAText'],
+            'option_b': eedi_question['AnswerBText'],
+            'option_c': eedi_question['AnswerCText'],
+            'option_d': eedi_question['AnswerDText'],
+            'correct': eedi_question['CorrectAnswer'],
+            'explanation': None,
+            'question_id': int(eedi_question['QuestionId'])
+        })
+
+    # Step 3 — Both failed
+    return jsonify({'error': 'No question available'}), 500
+
+print("✅ /recommend endpoint ready!")
 
 @app.route('/attempt', methods=['POST'])
 def attempt():
