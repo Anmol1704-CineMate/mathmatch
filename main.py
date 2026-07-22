@@ -252,10 +252,13 @@ def attempt():
         'mastered': new_score >= 0.85
     })
 
-@app.route('/profile', methods=['POST'])
+@app.route('/profile', methods=['GET', 'POST'])
 def profile():
-    data = request.json
-    student_id = data['student_id']
+    if request.method == 'GET':
+        student_id = request.args.get('student_id')
+    else:
+        data = request.json or {}
+        student_id = data.get('student_id')
     student = load_student(student_id)
     return jsonify({
         'student_id': student_id,

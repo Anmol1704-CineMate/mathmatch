@@ -340,10 +340,105 @@
     .fill-improving { background: #eab308; }
     .fill-needs-work { background: var(--error); }
 
-    /* ── Responsive ── */
-    @media (max-width: 500px) {
-      .options-grid { grid-template-columns: 1fr; }
-      .selector-grid { grid-template-columns: 1fr 1fr; }
+    /* ── Check-in Modal ── */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1.5rem;
+    }
+    .modal-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+    .modal-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .modal-icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .modal-header h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+    .checkin-skill-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+    }
+    .checkin-skill-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+      font-size: 0.9rem;
+    }
+    .checkin-skill-label {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .checkin-skill-value {
+      font-weight: 700;
+      color: var(--success);
+    }
+    .checkin-progress-bar {
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .checkin-progress-fill {
+      height: 100%;
+      background: var(--success);
+      border-radius: 99px;
+      transition: width 0.6s ease-out;
+    }
+    .checkin-weakest-box {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px dashed var(--error);
+      border-radius: 10px;
+      padding: 0.9rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .checkin-weakest-icon {
+      font-size: 1.4rem;
+    }
+    .checkin-weakest-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--error);
+      letter-spacing: 0.05em;
+    }
+    .checkin-weakest-value {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 0.15rem;
     }
   </style>
 </head>
@@ -353,6 +448,38 @@
 <div id="loading-overlay">
   <div class="spinner"></div>
   <div id="loading-text">Please wait...</div>
+</div>
+
+<!-- 5 Question Check-in Modal -->
+<div id="checkin-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-icon">🎯</div>
+      <h2>5 Question Check-in</h2>
+    </div>
+    <div class="modal-body">
+      <!-- Practiced Skill -->
+      <div class="checkin-skill-box">
+        <div class="checkin-skill-header">
+          <span class="checkin-skill-label">Just Practiced</span>
+          <span id="checkin-practiced-info" class="checkin-skill-value">Geometry: 41% ↑</span>
+        </div>
+        <div class="checkin-progress-bar">
+          <div id="checkin-practiced-fill" class="checkin-progress-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Weakest Skill -->
+      <div class="checkin-weakest-box">
+        <div class="checkin-weakest-icon">⚠️</div>
+        <div>
+          <div class="checkin-weakest-label">Focus Area</div>
+          <div id="checkin-weakest-info" class="checkin-weakest-value">Weakest: Fractions — 19%</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="closeCheckinModal()">Keep Practicing →</button>
+  </div>
 </div>
 
 <!-- Header -->
@@ -418,7 +545,7 @@
       <div id="p2-question-text" style="font-size:1.05rem;line-height:1.7;margin-bottom:1.5rem;"></div>
       <div class="options-grid" id="p2-options"></div>
       <div id="p2-feedback" class="feedback" style="margin-top:1rem;padding:0.75rem 1rem;border-radius:8px;font-size:0.9rem;font-weight:600;display:none;"></div>
-      <button class="btn" id="p2-next-btn" style="display:none;" onclick="fetchPhase2Question()">Next Question →</button>
+      <button class="btn" id="p2-next-btn" style="display:none;" onclick="onNextQuestionClick()">Next Question →</button>
       <div id="p2-error" class="error-box" style="display:none;">
         <div>Could not load question. Please try again.</div>
         <button class="btn secondary" style="width:auto;margin:1rem auto 0;display:inline-block;" onclick="fetchPhase2Question()">Retry</button>
@@ -492,6 +619,7 @@
   let totalAnswered    = 0;
   let totalCorrect     = 0;
   let streak           = 0;
+  let questionsAnswered = 0;
 
   // ────────────────────────────────────────────────
   // HELPERS
@@ -589,6 +717,7 @@
   async function startOnboarding() {
     studentId = 'user_' + Date.now();
     seenIds = [];
+    questionsAnswered = 0;
     document.getElementById('btn-progress').style.display = 'inline-flex';
     showScreen('screen-phase2');
     updateStats();
@@ -816,7 +945,73 @@
       is_correct: isCorrect
     }).then(res => {
       console.log('Attempt logged successfully:', JSON.stringify(res));
-    }).catch(e => console.warn('Attempt post failed:', e.message));
+      questionsAnswered++;
+    }).catch(e => {
+      console.warn('Attempt post failed:', e.message);
+      questionsAnswered++;
+    });
+  }
+
+  function onNextQuestionClick() {
+    if (questionsAnswered >= 5) {
+      questionsAnswered = 0;
+      showCheckinModal();
+    } else {
+      fetchPhase2Question();
+    }
+  }
+
+  async function showCheckinModal() {
+    const modal = document.getElementById('checkin-modal');
+    modal.style.display = 'flex';
+
+    const practicedSkill = currentQuestionSkill || 'Algebra';
+    document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: Loading...`;
+    document.getElementById('checkin-practiced-fill').style.width = '0%';
+    document.getElementById('checkin-weakest-info').textContent = 'Loading...';
+
+    try {
+      let data;
+      try {
+        const res = await fetch(`${API}/profile?student_id=${encodeURIComponent(studentId)}`);
+        if (res.ok) {
+          data = await res.json();
+        } else {
+          data = await apiPost('/profile', { student_id: studentId });
+        }
+      } catch (e) {
+        data = await apiPost('/profile', { student_id: studentId });
+      }
+
+      const skills = (data && data.skills) ? data.skills : {};
+
+      const practicedScore = skills[practicedSkill] !== undefined ? skills[practicedSkill] : 0.3;
+      const practicedPct = Math.round(practicedScore * 100);
+
+      document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: ${practicedPct}% ↑`;
+      document.getElementById('checkin-practiced-fill').style.width = `${practicedPct}%`;
+
+      let weakestSkill = practicedSkill;
+      let lowestScore = 999;
+      Object.keys(skills).forEach(s => {
+        if (skills[s] < lowestScore) {
+          lowestScore = skills[s];
+          weakestSkill = s;
+        }
+      });
+
+      const weakestPct = Math.round(lowestScore * 100);
+      document.getElementById('checkin-weakest-info').textContent = `Weakest: ${weakestSkill} — ${weakestPct}%`;
+    } catch (err) {
+      console.warn('Could not fetch profile for check-in modal:', err);
+      document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: Updated`;
+      document.getElementById('checkin-weakest-info').textContent = 'Check your profile for full analytics';
+    }
+  }
+
+  function closeCheckinModal() {
+    document.getElementById('checkin-modal').style.display = 'none';
+    fetchPhase2Question();
   }
 
   async function showProgressDashboard() {
