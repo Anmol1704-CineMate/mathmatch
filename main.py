@@ -110,19 +110,10 @@ def pick_question(skill, seen_ids=[]):
 
 def generate_question_v2(skill, p_known):
     
-    if p_known < 0.35:
-        difficulty = "very easy"
-        difficulty_guide = "single step problem, direct formula application, no multi-step thinking required"
-    elif p_known < 0.45:
-        difficulty = "easy"
-        difficulty_guide = "straightforward calculation involving one concept, minimal steps"
-    elif p_known < 0.52:
-        difficulty = "easy-medium"
-        difficulty_guide = "two step problem using a familiar concept, slightly more thinking required"
-    elif p_known < 0.60:
+    if p_known < 0.45:
         difficulty = "medium"
-        difficulty_guide = "requires applying the concept in a slightly new context, 2-3 steps"
-    elif p_known < 0.68:
+        difficulty_guide = "requires applying the concept in a slightly new context, 2-3 steps, but still multi-step"
+    elif p_known < 0.60:
         difficulty = "medium-hard"
         difficulty_guide = "multi step problem requiring some deeper thinking, not immediately obvious"
     elif p_known < 0.75:
@@ -135,7 +126,9 @@ def generate_question_v2(skill, p_known):
         difficulty = "expert"
         difficulty_guide = "mastery level question, hardest possible, olympiad or top exam standard"
 
-    prompt = f"""Generate a {difficulty} {skill} multiple choice question for a Class 10 student aged 14-16.
+    prompt = f"""You are a challenging maths question generator for high school students preparing for competitive exams. Always generate questions that require multi-step thinking — never straightforward single-step calculations. Questions should feel like they belong in a competitive exam paper, not a textbook exercise. The student must actually think to solve them.
+
+Generate a {difficulty} {skill} multiple choice question for a Class 10 student aged 14-16.
 Difficulty guide: {difficulty_guide}
 
 Strict rules:
