@@ -126,6 +126,9 @@ Strict rules:
 - Exactly one correct answer
 - All 4 options must be plausible — no obviously wrong options
 - No images, diagrams or tables required
+- Wrap ALL mathematical expressions in $ delimiters for LaTeX rendering
+- Examples: $x^2$ not x^2, $\\frac{{a}}{{b}}$ not a/b, $\\sqrt{{x}}$ not sqrt(x)
+- Wrap the entire question and all options if they contain math
 - Use clean mathematical notation
 - Question must be unambiguous
 
