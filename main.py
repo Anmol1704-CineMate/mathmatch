@@ -126,9 +126,11 @@ Strict rules:
 - Exactly one correct answer
 - All 4 options must be plausible — no obviously wrong options
 - No images, diagrams or tables required
-- Wrap ALL mathematical expressions in $ delimiters for LaTeX rendering
-- Examples: $x^2$ not x^2, $\\frac{{a}}{{b}}$ not a/b, $\\sqrt{{x}}$ not sqrt(x)
-- Wrap the entire question and all options if they contain math
+- Write ALL mathematical expressions in plain text format only
+- Use ^ for powers: x^2 not \\frac or LaTeX
+- Use / for fractions: 1/6 not \\frac{1}{6}
+- Use sqrt() for square roots: sqrt(x) not \\sqrt{x}
+- Never use LaTeX backslash commands
 - Use clean mathematical notation
 - Question must be unambiguous
 
@@ -142,7 +144,6 @@ Return ONLY this JSON format, no markdown, no explanation:
         )
         content = response.choices[0].message.content
         content = content.replace('```json', '').replace('```', '').strip()
-        content = content.replace('\\', '\\\\')
         question = json.loads(content)
         question['skill'] = skill
         question['subtopic'] = subtopic
