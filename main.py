@@ -149,6 +149,14 @@ Return ONLY this JSON format, no markdown, no explanation:
         )
         content = response.choices[0].message.content
         content = content.replace('```json', '').replace('```', '').strip()
+
+        # Fix LaTeX backslashes before JSON parsing
+        import re
+        def fix_json_backslashes(s):
+            # Replace all backslashes not followed by valid JSON escape chars
+            return re.sub(r'\\(?!["\\/bfnrt])', r'\\\\', s)
+
+        content = fix_json_backslashes(content)
         question = json.loads(content)
         question['skill'] = skill
         question['subtopic'] = subtopic
