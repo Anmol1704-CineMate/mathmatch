@@ -702,15 +702,18 @@
   // TOPIC SELECTION SCREEN
   // ────────────────────────────────────────────────
   async function loadStudentProfile() {
+    renderTopicCards();
     showLoading('Loading topics & mastery...');
     try {
       const res = await fetch(`${API}/profile?student_id=${encodeURIComponent(studentId)}`);
       if (res.ok) {
         const data = await res.json();
-        studentSkills = data.skills || {};
+        if (data && data.skills) {
+          studentSkills = data.skills;
+        }
       }
     } catch (e) {
-      console.warn('Could not fetch profile via GET, trying fallback:', e.message);
+      console.warn('Could not fetch profile via GET:', e.message);
     } finally {
       renderTopicCards();
       hideLoading();
@@ -741,8 +744,10 @@
     if (!grid) return;
     grid.innerHTML = '';
 
+    const skills = studentSkills || {};
+
     JEE_TOPICS.forEach(topic => {
-      const score = studentSkills[topic] !== undefined ? studentSkills[topic] : 0.3;
+      const score = (skills && skills[topic] !== undefined) ? skills[topic] : 0.3;
       const { pct, statusText, fillClass } = getMasteryInfo(score);
 
       const card = document.createElement('div');
@@ -778,6 +783,7 @@
 
   async function showTopicSelectionScreen() {
     showScreen('screen-topics');
+    renderTopicCards();
     await loadStudentProfile();
   }
 
@@ -1077,7 +1083,8 @@
   // INITIALIZATION ON APP LOAD
   // ────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", function() {
-    renderMath();
+    renderTopicCards();
+    convertAndRenderMath();
     showScreen('screen-topics');
     loadStudentProfile();
   });
