@@ -678,8 +678,10 @@
   }
 
   function convertAndRenderMath() {
-    document.querySelectorAll('.question-text, .option-text, .explanation-text').forEach(el => {
-      el.innerHTML = el.innerHTML.replace(/\[MATH\](.*?)\[\/MATH\]/gs, '\\($1\\)');
+    document.querySelectorAll('.question-text, .option-text, .explanation-text, .option-label, p, .option-btn').forEach(el => {
+      if (el.innerHTML.includes('[MATH]')) {
+        el.innerHTML = el.innerHTML.replace(/\[MATH\]([\s\S]*?)\[\/MATH\]/g, '\\($1\\)');
+      }
     });
     if (typeof renderMathInElement !== 'undefined') {
       renderMathInElement(document.body, {
