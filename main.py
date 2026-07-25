@@ -153,8 +153,8 @@ Return ONLY this JSON format, no markdown, no explanation:
         # Fix LaTeX backslashes before JSON parsing
         import re
         def fix_json_backslashes(s):
-            # Replace all backslashes not followed by valid JSON escape chars
-            return re.sub(r'\\(?!["\\/bfnrt])', r'\\\\', s)
+            # Double any single backslash that is not followed by " and not preceded by \
+            return re.sub(r'(?<!\\)\\(?!")', r'\\\\', s)
 
         content = fix_json_backslashes(content)
         question = json.loads(content)
