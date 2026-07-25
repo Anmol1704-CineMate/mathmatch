@@ -127,10 +127,10 @@ Strict rules:
 - All 4 options must be plausible — no obviously wrong options
 - No images, diagrams or tables required
 - Write ALL mathematical expressions in plain text format only
-- Use ^ for powers: x^2 not \\frac or LaTeX
-- Use / for fractions: 1/6 not \\frac{1}{6}
-- Use sqrt() for square roots: sqrt(x) not \\sqrt{x}
-- Never use LaTeX backslash commands
+- Use ^ for powers instead of LaTeX commands
+- Use / for fractions instead of LaTeX commands
+- Use sqrt() for square roots instead of LaTeX commands
+- Never use backslash LaTeX commands like \\frac, \\sqrt, \\lim
 - Use clean mathematical notation
 - Question must be unambiguous
 
