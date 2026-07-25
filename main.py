@@ -142,6 +142,7 @@ Return ONLY this JSON format, no markdown, no explanation:
         )
         content = response.choices[0].message.content
         content = content.replace('```json', '').replace('```', '').strip()
+        content = content.replace('\\', '\\\\')
         question = json.loads(content)
         question['skill'] = skill
         question['subtopic'] = subtopic
