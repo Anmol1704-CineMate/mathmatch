@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MathMatch | Adaptive Math Practice</title>
+  <title>MathMatch | JEE Adaptive Math Practice</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" />
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
@@ -41,7 +41,7 @@
     /* ── Header ── */
     #header {
       width: 100%;
-      max-width: 680px;
+      max-width: 720px;
       padding: 1.25rem 1.5rem;
       display: flex;
       align-items: center;
@@ -52,6 +52,7 @@
       font-size: 1.4rem;
       font-weight: 800;
       letter-spacing: -0.5px;
+      cursor: pointer;
     }
     #header .brand span { color: var(--accent); }
     #header-stats {
@@ -74,7 +75,7 @@
     /* ── Main wrapper ── */
     #app {
       width: 100%;
-      max-width: 680px;
+      max-width: 720px;
       padding: 2rem 1.5rem 4rem;
       flex: 1;
     }
@@ -94,56 +95,73 @@
     /* ── Typography ── */
     h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: 0.4rem; }
     h3 { font-size: 1rem; font-weight: 600; color: var(--text-muted); margin-bottom: 1.5rem; }
-    .section-label {
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-muted);
-      margin-bottom: 0.75rem;
-    }
 
-    /* ── Text input ── */
-    input[type="text"] {
-      width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      color: var(--text);
-      font-size: 1rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    input[type="text"]:focus { border-color: var(--accent); }
-    input[type="text"]::placeholder { color: var(--text-muted); }
-
-    /* ── Selector grid ── */
-    .selector-grid {
+    /* ── Topic Selection Grid ── */
+    .topic-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
     }
-    .sel-card {
-      background: rgba(255,255,255,0.03);
-      border: 2px solid var(--border);
+    @media (max-width: 580px) {
+      .topic-grid { grid-template-columns: 1fr; }
+    }
+
+    .topic-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1.5px solid var(--border);
       border-radius: var(--radius);
-      padding: 1rem 0.75rem;
-      text-align: center;
+      padding: 1.1rem 1.2rem;
       cursor: pointer;
-      transition: all 0.18s ease;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
       user-select: none;
     }
-    .sel-card:hover { background: var(--card-hover); border-color: rgba(108,99,255,0.35); }
-    .sel-card.selected {
-      border-color: var(--accent);
-      background: var(--accent-light);
-      box-shadow: 0 0 0 1px var(--accent-border);
+    .topic-card:hover {
+      background: var(--card-hover);
+      border-color: rgba(108, 99, 255, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
     }
-    .sel-card .icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
-    .sel-card .label { font-weight: 700; font-size: 0.9rem; }
-    .sel-card .desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .topic-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .topic-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .topic-status {
+      font-size: 0.76rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .topic-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .topic-progress-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .topic-progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.4s ease-out;
+    }
+    .fill-weak { background: var(--error); }
+    .fill-avg { background: #eab308; }
+    .fill-strong { background: var(--success); }
 
     /* ── Primary button ── */
     .btn {
@@ -184,6 +202,9 @@
       grid-template-columns: 1fr 1fr;
       gap: 0.75rem;
     }
+    @media (max-width: 580px) {
+      .options-grid { grid-template-columns: 1fr; }
+    }
     .opt-btn {
       background: rgba(255,255,255,0.03);
       border: 1.5px solid var(--border);
@@ -213,21 +234,6 @@
     }
     #feedback.correct { background: var(--success-light); color: var(--success); border: 1px solid var(--success); }
     #feedback.wrong { background: var(--error-light); color: var(--error); border: 1px solid var(--error); }
-
-    /* ── Progress bar ── */
-    .progress-bar {
-      height: 4px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 99px;
-      margin-bottom: 1.5rem;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 99px;
-      transition: width 0.4s ease;
-    }
 
     /* ── Phase badge ── */
     .phase-badge {
@@ -462,7 +468,7 @@
       <div class="checkin-skill-box">
         <div class="checkin-skill-header">
           <span class="checkin-skill-label">Just Practiced</span>
-          <span id="checkin-practiced-info" class="checkin-skill-value">Geometry: 41% ↑</span>
+          <span id="checkin-practiced-info" class="checkin-skill-value">Trigonometry: 41% ↑</span>
         </div>
         <div class="checkin-progress-bar">
           <div id="checkin-practiced-fill" class="checkin-progress-fill" style="width: 0%;"></div>
@@ -474,23 +480,26 @@
         <div class="checkin-weakest-icon">⚠️</div>
         <div>
           <div class="checkin-weakest-label">Focus Area</div>
-          <div id="checkin-weakest-info" class="checkin-weakest-value">Weakest: Fractions — 19%</div>
+          <div id="checkin-weakest-info" class="checkin-weakest-value">Weakest: Integration — 19%</div>
         </div>
       </div>
     </div>
-    <button class="btn" onclick="closeCheckinModal()">Keep Practicing →</button>
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <button class="btn" onclick="closeCheckinModal()">Keep Practicing →</button>
+      <button class="btn secondary" style="margin-top:0;" onclick="switchTopicFromModal()">Switch Topic</button>
+    </div>
   </div>
 </div>
 
 <!-- Header -->
 <header id="header">
-  <div class="brand">Math<span>Match</span></div>
+  <div class="brand" onclick="showTopicSelectionScreen()">Math<span>Match</span></div>
   <div style="display: flex; gap: 0.5rem; align-items: center;">
-    <button id="btn-progress" class="pill-btn" style="display:none;" onclick="showProgressDashboard()">📊 My Progress</button>
+    <button id="btn-topics" class="pill-btn" onclick="showTopicSelectionScreen()">📚 Topics</button>
+    <button id="btn-progress" class="pill-btn" onclick="showProgressDashboard()">📊 My Progress</button>
     <div id="header-stats" style="display:none">
       <div class="pill">🔥 <span id="stat-streak">0</span> Streak</div>
       <div class="pill">🎯 <span id="stat-acc">0%</span> Acc</div>
-      <div class="pill" id="stat-name-pill" style="display:none">👤 <span id="stat-name"></span></div>
     </div>
   </div>
 </header>
@@ -498,49 +507,30 @@
 <div id="app">
 
   <!-- ══════════════════════════════════════════════
-       SCREEN 1 — ONBOARDING SETUP
+       SCREEN 1 — JEE TOPIC SELECTION
   ══════════════════════════════════════════════ -->
-  <div id="screen-setup" class="screen active">
-    <div class="card">
-      <h2>Master Maths</h2>
-      <h3>Find your weak spots. Fix them fast.</h3>
-      <div class="divider"></div>
+  <div id="screen-topics" class="screen active">
+    <div class="card" style="padding: 1.75rem 1.5rem;">
+      <h2 style="text-align: center; margin-bottom: 0.3rem;">Select a Topic to Practice</h2>
+      <h3 style="text-align: center; margin-bottom: 1.5rem; font-size: 0.92rem; color: var(--text-muted); font-weight: 500;">
+        Coaching teaches. MathMatch fixes what you're missing.
+      </h3>
 
-      <!-- Name -->
-      <div class="section-label">Your Display Name</div>
-      <input type="text" id="name-input" placeholder="e.g. Rahul" autocomplete="off"
-             oninput="onNameInput()" />
-
-      <button class="btn" id="btn-start" disabled onclick="startOnboarding()">
-        Start Practice Run →
-      </button>
+      <div id="topic-grid" class="topic-grid">
+        <!-- 12 Topic cards injected dynamically -->
+      </div>
     </div>
   </div>
 
 
   <!-- ══════════════════════════════════════════════
-       SCREEN 2 — PHASE 1: ONBOARDING QUESTIONS
-  ══════════════════════════════════════════════ -->
-  <div id="screen-phase1" class="screen">
-    <div class="phase-badge">Phase 1 · Onboarding</div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="p1-progress" style="width:0%"></div>
-    </div>
-    <div class="card">
-      <div id="p1-q-label" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.75rem;">Question 1 of 5</div>
-      <div id="p1-question-text" style="font-size:1.05rem;line-height:1.7;margin-bottom:1.5rem;"></div>
-      <div class="options-grid" id="p1-options"></div>
-      <div id="p1-feedback" class="feedback" style="margin-top:1rem;padding:0.75rem 1rem;border-radius:8px;font-size:0.9rem;font-weight:600;display:none;"></div>
-      <button class="btn" id="p1-next-btn" style="display:none;" onclick="phase1Next()">Next Question →</button>
-    </div>
-  </div>
-
-
-  <!-- ══════════════════════════════════════════════
-       SCREEN 3 — PHASE 2: SVD ADAPTIVE
+       SCREEN 2 — PRACTICE SCREEN
   ══════════════════════════════════════════════ -->
   <div id="screen-phase2" class="screen">
-    <div class="phase-badge">Adaptive BKT Practice</div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <div class="phase-badge">JEE Practice · <span id="p2-topic-name">Trigonometry</span></div>
+      <button class="pill-btn" onclick="showTopicSelectionScreen()">← Switch Topic</button>
+    </div>
     <div class="card">
       <div id="p2-question-text" style="font-size:1.05rem;line-height:1.7;margin-bottom:1.5rem;"></div>
       <div class="options-grid" id="p2-options"></div>
@@ -554,7 +544,7 @@
   </div>
 
   <!-- ══════════════════════════════════════════════
-       SCREEN 4 — SKILL DASHBOARD
+       SCREEN 3 — SKILL DASHBOARD
   ══════════════════════════════════════════════ -->
   <div id="screen-dashboard" class="screen">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
@@ -579,9 +569,9 @@
           <span>⚠️</span> Focus Recommendation
         </div>
         <div style="color:var(--text-muted); font-size:0.9rem;">
-          Your weakest area is <strong id="weakest-skill-name" style="color:var(--text)">Algebra</strong> (Estimated mastery: <span id="weakest-skill-pct">0%</span>).
+          Your weakest area is <strong id="weakest-skill-name" style="color:var(--text)">Trigonometry</strong> (Estimated mastery: <span id="weakest-skill-pct">0%</span>).
         </div>
-        <button class="btn" style="margin-top:0.5rem; background:var(--error);" onclick="exitDashboard()">
+        <button class="btn" style="margin-top:0.5rem; background:var(--error);" onclick="practiceWeakestSkill()">
           Practise now →
         </button>
       </div>
@@ -593,32 +583,44 @@
 
 <script>
   // ────────────────────────────────────────────────
-  // CONFIG
+  // CONFIG & CONSTANTS
   // ────────────────────────────────────────────────
   const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://127.0.0.1:5000' : 'https://mathmatch-production.up.railway.app';
+
+  const JEE_TOPICS = [
+    'Limits & Continuity',
+    'Differentiation',
+    'Integration',
+    'Differential Equations',
+    'Matrices & Determinants',
+    'Vectors & 3D Geometry',
+    'Coordinate Geometry',
+    'Straight Lines & Circles',
+    'Probability & Statistics',
+    'Complex Numbers',
+    'Sequences & Series',
+    'Trigonometry'
+  ];
 
   // ────────────────────────────────────────────────
   // STATE
   // ────────────────────────────────────────────────
-  let studentName      = '';
-  let selectedGoal     = '';
-  let selectedConf     = '';
-  let studentId        = '';
+  let studentId = localStorage.getItem('mathmatch_student_id');
+  if (!studentId) {
+    studentId = 'user_' + Date.now();
+    localStorage.setItem('mathmatch_student_id', studentId);
+  }
 
-  // Phase 1
-  let onboardQuestions = [];
-  let p1Index          = 0;
-  let onboardAttempts  = [];  // [{problem_id, is_correct}]
+  let selectedTopic = '';
+  let studentSkills = {};
 
-  // Phase 2
-  let seenIds          = [];  // outer scope — persists across calls
-  let p2Question       = null;
+  let p2Question = null;
   let currentQuestionSkill = '';
 
   // Stats
-  let totalAnswered    = 0;
-  let totalCorrect     = 0;
-  let streak           = 0;
+  let totalAnswered = 0;
+  let totalCorrect = 0;
+  let streak = 0;
   let questionsAnswered = 0;
 
   // ────────────────────────────────────────────────
@@ -626,15 +628,12 @@
   // ────────────────────────────────────────────────
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    
+    const target = document.getElementById(id);
+    if (target) target.classList.add('active');
+
     const btnProgress = document.getElementById('btn-progress');
     if (btnProgress) {
-      if (id === 'screen-phase2' || id === 'screen-dashboard') {
-        btnProgress.style.display = 'inline-flex';
-      } else {
-        btnProgress.style.display = 'none';
-      }
+      btnProgress.style.display = 'inline-flex';
     }
   }
 
@@ -652,10 +651,6 @@
     document.getElementById('stat-streak').textContent = streak;
     document.getElementById('stat-acc').textContent = acc + '%';
     document.getElementById('header-stats').style.display = 'flex';
-    if (studentName) {
-      document.getElementById('stat-name').textContent = studentName;
-      document.getElementById('stat-name-pill').style.display = 'flex';
-    }
   }
 
   function recordAnswer(correct) {
@@ -697,157 +692,117 @@
   }
 
   function renderMathInPage() {
-    // Called by KaTeX auto-render onload
     document.querySelectorAll('.screen.active').forEach(renderMath);
   }
 
   // ────────────────────────────────────────────────
-  // SCREEN 1 — SETUP
+  // TOPIC SELECTION SCREEN
   // ────────────────────────────────────────────────
-  function onNameInput() {
-    studentName = document.getElementById('name-input').value.trim();
-    checkStartEligible();
+  async function loadStudentProfile() {
+    showLoading('Loading topics & mastery...');
+    try {
+      const res = await fetch(`${API}/profile?student_id=${encodeURIComponent(studentId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        studentSkills = data.skills || {};
+      }
+    } catch (e) {
+      console.warn('Could not fetch profile via GET, trying fallback:', e.message);
+    } finally {
+      renderTopicCards();
+      hideLoading();
+    }
   }
 
-  function checkStartEligible() {
-    const ok = studentName.length > 0;
-    document.getElementById('btn-start').disabled = !ok;
+  function getMasteryInfo(score) {
+    const pct = Math.round((score !== undefined ? score : 0.3) * 100);
+    let statusText = '';
+    let fillClass = '';
+
+    if (pct < 40) {
+      statusText = '🔴 Weak';
+      fillClass = 'fill-weak';
+    } else if (pct < 70) {
+      statusText = '🟡 Average';
+      fillClass = 'fill-avg';
+    } else {
+      statusText = '🟢 Strong';
+      fillClass = 'fill-strong';
+    }
+
+    return { pct, statusText, fillClass };
   }
 
-  async function startOnboarding() {
-    studentId = 'user_' + Date.now();
-    seenIds = [];
-    questionsAnswered = 0;
-    document.getElementById('btn-progress').style.display = 'inline-flex';
+  function renderTopicCards() {
+    const grid = document.getElementById('topic-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    JEE_TOPICS.forEach(topic => {
+      const score = studentSkills[topic] !== undefined ? studentSkills[topic] : 0.3;
+      const { pct, statusText, fillClass } = getMasteryInfo(score);
+
+      const card = document.createElement('div');
+      card.className = 'topic-card';
+      card.onclick = () => selectTopic(topic);
+      card.innerHTML = `
+        <div class="topic-card-header">
+          <div class="topic-title">${topic}</div>
+          <div class="topic-status">${statusText}</div>
+        </div>
+        <div class="topic-meta">
+          <span>Mastery</span>
+          <span style="font-weight: 700; color: var(--text);">${pct}%</span>
+        </div>
+        <div class="topic-progress-bar">
+          <div class="topic-progress-fill ${fillClass}" style="width: ${pct}%;"></div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function selectTopic(topic) {
+    selectedTopic = topic;
+    currentQuestionSkill = topic;
+    const badgeSpan = document.getElementById('p2-topic-name');
+    if (badgeSpan) badgeSpan.textContent = topic;
+
     showScreen('screen-phase2');
     updateStats();
     fetchPhase2Question();
   }
 
-  // ────────────────────────────────────────────────
-  // SCREEN 2 — PHASE 1
-  // ────────────────────────────────────────────────
-  function renderPhase1Question() {
-    const q = onboardQuestions[p1Index];
-    const total = onboardQuestions.length;
-
-    console.log('Phase1 Q:', JSON.stringify(q));
-
-    document.getElementById('p1-q-label').textContent = `Question ${p1Index + 1} of ${total}`;
-    document.getElementById('p1-progress').style.width = ((p1Index / total) * 100) + '%';
-    document.getElementById('p1-feedback').style.display = 'none';
-    document.getElementById('p1-next-btn').style.display = 'none';
-
-    const qText = document.getElementById('p1-question-text');
-    qText.textContent = q.question || q.QuestionText || '';
-
-    const opts = document.getElementById('p1-options');
-    opts.innerHTML = '';
-
-    const keys = ['A', 'B', 'C', 'D'];
-    keys.forEach(k => {
-      // API returns q.A, q.B, q.C, q.D directly
-      const text = q[k] || '';
-      if (!text) return;
-      const btn = document.createElement('button');
-      btn.className = 'opt-btn';
-      btn.innerHTML = `<span class="key">${k}.</span> ${text}`;
-      btn.onclick = () => handlePhase1Answer(k, q.correct || q.CorrectAnswer, q.problem_id || q.QuestionId || p1Index);
-      opts.appendChild(btn);
-    });
-
-    renderMath(document.getElementById('screen-phase1'));
-  }
-
-  function handlePhase1Answer(chosen, correct, problemId) {
-    const isCorrect = chosen === correct;
-    recordAnswer(isCorrect);
-
-    onboardAttempts.push({ problem_id: String(problemId), is_correct: isCorrect });
-
-    // Highlight buttons
-    document.querySelectorAll('#p1-options .opt-btn').forEach(btn => {
-      btn.disabled = true;
-      const key = btn.querySelector('.key').textContent.replace('.', '');
-      if (key === correct) btn.classList.add('correct');
-      else if (key === chosen) btn.classList.add('wrong');
-    });
-
-    // Feedback
-    const fb = document.getElementById('p1-feedback');
-    fb.style.display = 'block';
-    if (isCorrect) {
-      fb.style.cssText += ';background:var(--success-light);color:var(--success);border:1px solid var(--success);';
-      fb.textContent = '✓ Correct!';
-    } else {
-      fb.style.cssText += ';background:var(--error-light);color:var(--error);border:1px solid var(--error);';
-      fb.textContent = `✗ Incorrect — correct answer was ${correct}.`;
-    }
-
-    document.getElementById('p1-next-btn').style.display = 'block';
-  }
-
-  async function phase1Next() {
-    p1Index++;
-    if (p1Index < onboardQuestions.length) {
-      renderPhase1Question();
-    } else {
-      // Done — build student profile
-      showLoading('Building your student profile...');
-      try {
-        await apiPost('/build_student', {
-          student_id: studentId,
-          attempts: onboardAttempts
-        });
-        console.log('Student factors built for:', studentId);
-      } catch (e) {
-        console.warn('build_student failed (non-fatal):', e.message);
-      } finally {
-        hideLoading();
-      }
-
-      // Move to Phase 2
-      document.getElementById('p1-progress').style.width = '100%';
-      seenIds = [];
-      showScreen('screen-phase2');
-      updateStats();
-      fetchPhase2Question();
-    }
+  async function showTopicSelectionScreen() {
+    showScreen('screen-topics');
+    await loadStudentProfile();
   }
 
   // ────────────────────────────────────────────────
-  // SCREEN 3 — PHASE 2 (BKT ADAPTIVE)
+  // PRACTICE SCREEN (JEE ADAPTIVE)
   // ────────────────────────────────────────────────
   async function fetchPhase2Question() {
-    // Reset UI
     document.getElementById('p2-options').innerHTML = '';
     document.getElementById('p2-feedback').style.display = 'none';
     document.getElementById('p2-next-btn').style.display = 'none';
     document.getElementById('p2-error').style.display = 'none';
     document.getElementById('p2-question-text').textContent = '';
 
-    showLoading('Loading next question...');
+    showLoading(`Generating JEE question on ${selectedTopic}...`);
 
     try {
       const data = await apiPost('/recommend', {
         student_id: studentId,
-        seen_ids: seenIds,
-        goal: selectedGoal
+        topic: selectedTopic
       });
 
       console.log('Recommend response:', JSON.stringify(data));
-      if (!data || !data.question) {
+      if (!data || (!data.question && !data.QuestionText)) {
         throw new Error('No question returned');
       }
 
       p2Question = data;
-      currentQuestionSkill = data.skill || '';
-
-      // Push to seenIds immediately after receiving (if from eedi bank)
-      if (p2Question.question_id !== null && p2Question.question_id !== undefined) {
-        const pid = Number(p2Question.question_id);
-        if (!seenIds.includes(pid)) seenIds.push(pid);
-      }
+      currentQuestionSkill = data.skill || selectedTopic;
 
       renderPhase2Question();
     } catch (e) {
@@ -868,15 +823,14 @@
     const opts = document.getElementById('p2-options');
     opts.innerHTML = '';
 
-    // Show skill in the badge if available
-    const phaseBadge = document.querySelector('#screen-phase2 .phase-badge');
-    if (phaseBadge) {
-      phaseBadge.textContent = `Adaptive BKT Practice` + (currentQuestionSkill ? ` · ${currentQuestionSkill}` : '');
+    const badgeSpan = document.getElementById('p2-topic-name');
+    if (badgeSpan) {
+      const sub = q.subtopic ? ` (${q.subtopic})` : '';
+      badgeSpan.textContent = `${q.skill || selectedTopic}${sub}`;
     }
 
     const keys = ['A', 'B', 'C', 'D'];
     keys.forEach(k => {
-      // API returns option_a, option_b, option_c, option_d or direct options A/B/C/D
       const keyLower = k.toLowerCase();
       const optText = q['option_' + keyLower] || q[k] || (q.options && q.options[k]) || '';
       if (!optText) return;
@@ -924,7 +878,6 @@
     const isCorrect = chosen === correct;
     recordAnswer(isCorrect);
 
-    // Highlight
     document.querySelectorAll('#p2-options .opt-btn').forEach(btn => {
       btn.disabled = true;
       const key = btn.querySelector('.key').textContent.replace('.', '').trim();
@@ -932,20 +885,21 @@
       else if (key === chosen) btn.classList.add('wrong');
     });
 
-    // Feedback
     const explanation = p2Question ? (p2Question.explanation || '') : '';
     renderFeedbackPanel(isCorrect, correct, explanation);
 
     document.getElementById('p2-next-btn').style.display = 'block';
 
-    // Post attempt in background (non-blocking)
     apiPost('/attempt', {
       student_id: studentId,
-      skill: currentQuestionSkill,
+      skill: selectedTopic,
       is_correct: isCorrect
     }).then(res => {
       console.log('Attempt logged successfully:', JSON.stringify(res));
       questionsAnswered++;
+      if (res && res.new_score !== undefined) {
+        studentSkills[selectedTopic] = res.new_score;
+      }
     }).catch(e => {
       console.warn('Attempt post failed:', e.message);
       questionsAnswered++;
@@ -965,37 +919,34 @@
     const modal = document.getElementById('checkin-modal');
     modal.style.display = 'flex';
 
-    const practicedSkill = currentQuestionSkill || 'Algebra';
+    const practicedSkill = selectedTopic || 'Trigonometry';
     document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: Loading...`;
     document.getElementById('checkin-practiced-fill').style.width = '0%';
     document.getElementById('checkin-weakest-info').textContent = 'Loading...';
 
     try {
-      let data;
-      try {
-        const res = await fetch(`${API}/profile?student_id=${encodeURIComponent(studentId)}`);
-        if (res.ok) {
-          data = await res.json();
-        } else {
-          data = await apiPost('/profile', { student_id: studentId });
-        }
-      } catch (e) {
-        data = await apiPost('/profile', { student_id: studentId });
+      const res = await fetch(`${API}/profile?student_id=${encodeURIComponent(studentId)}`);
+      let skills = {};
+      if (res.ok) {
+        const data = await res.json();
+        skills = data.skills || {};
+        studentSkills = skills;
+      } else {
+        skills = studentSkills;
       }
-
-      const skills = (data && data.skills) ? data.skills : {};
 
       const practicedScore = skills[practicedSkill] !== undefined ? skills[practicedSkill] : 0.3;
       const practicedPct = Math.round(practicedScore * 100);
 
-      document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: ${practicedPct}% ↑`;
+      document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: ${practicedPct}%`;
       document.getElementById('checkin-practiced-fill').style.width = `${practicedPct}%`;
 
       let weakestSkill = practicedSkill;
       let lowestScore = 999;
-      Object.keys(skills).forEach(s => {
-        if (skills[s] < lowestScore) {
-          lowestScore = skills[s];
+      JEE_TOPICS.forEach(s => {
+        const sc = skills[s] !== undefined ? skills[s] : 0.3;
+        if (sc < lowestScore) {
+          lowestScore = sc;
           weakestSkill = s;
         }
       });
@@ -1004,8 +955,10 @@
       document.getElementById('checkin-weakest-info').textContent = `Weakest: ${weakestSkill} — ${weakestPct}%`;
     } catch (err) {
       console.warn('Could not fetch profile for check-in modal:', err);
-      document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: Updated`;
-      document.getElementById('checkin-weakest-info').textContent = 'Check your profile for full analytics';
+      const score = studentSkills[practicedSkill] !== undefined ? studentSkills[practicedSkill] : 0.3;
+      const pct = Math.round(score * 100);
+      document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: ${pct}%`;
+      document.getElementById('checkin-weakest-info').textContent = 'Check profile for full analytics';
     }
   }
 
@@ -1014,25 +967,34 @@
     fetchPhase2Question();
   }
 
+  function switchTopicFromModal() {
+    document.getElementById('checkin-modal').style.display = 'none';
+    showTopicSelectionScreen();
+  }
+
   async function showProgressDashboard() {
     showLoading('Fetching your progress profile...');
     try {
-      const data = await apiPost('/profile', { student_id: studentId });
-      console.log('Profile response:', JSON.stringify(data));
-      
-      const skills = data.skills || {};
+      const res = await fetch(`${API}/profile?student_id=${encodeURIComponent(studentId)}`);
+      let skills = {};
+      if (res.ok) {
+        const data = await res.json();
+        skills = data.skills || {};
+        studentSkills = skills;
+      } else {
+        skills = studentSkills;
+      }
+
       const container = document.getElementById('dashboard-skills-list');
       container.innerHTML = '';
       
       let weakestSkill = null;
       let lowestScore = 999;
       
-      // Render all skills
-      Object.keys(skills).forEach(skillName => {
-        const score = skills[skillName];
+      JEE_TOPICS.forEach(skillName => {
+        const score = skills[skillName] !== undefined ? skills[skillName] : 0.3;
         const pct = Math.round(score * 100);
         
-        // Track weakest skill
         if (score < lowestScore) {
           lowestScore = score;
           weakestSkill = skillName;
@@ -1042,16 +1004,16 @@
         let statusClass = '';
         let fillClass = '';
         
-        if (score >= 0.85) {
-          statusText = 'Mastered';
+        if (pct >= 70) {
+          statusText = 'Strong';
           statusClass = 'status-mastered';
           fillClass = 'fill-mastered';
-        } else if (score >= 0.40) {
-          statusText = 'Improving';
+        } else if (pct >= 40) {
+          statusText = 'Average';
           statusClass = 'status-improving';
           fillClass = 'fill-improving';
         } else {
-          statusText = 'Needs work';
+          statusText = 'Weak';
           statusClass = 'status-needs-work';
           fillClass = 'fill-needs-work';
         }
@@ -1073,7 +1035,6 @@
         container.appendChild(skillItem);
       });
       
-      // Update weakest skill highlight card
       if (weakestSkill) {
         document.getElementById('weakest-skill-name').textContent = weakestSkill;
         document.getElementById('weakest-skill-pct').textContent = Math.round(lowestScore * 100) + '%';
@@ -1090,16 +1051,30 @@
     }
   }
 
+  function practiceWeakestSkill() {
+    const weakestName = document.getElementById('weakest-skill-name').textContent;
+    if (weakestName && JEE_TOPICS.includes(weakestName)) {
+      selectTopic(weakestName);
+    } else {
+      exitDashboard();
+    }
+  }
+
   function exitDashboard() {
-    showScreen('screen-phase2');
+    if (selectedTopic) {
+      showScreen('screen-phase2');
+    } else {
+      showTopicSelectionScreen();
+    }
   }
 
   // ────────────────────────────────────────────────
-  // KaTeX: also render when called by onload
+  // INITIALIZATION ON APP LOAD
   // ────────────────────────────────────────────────
-  function renderMathInPage() {
-    document.querySelectorAll('.screen.active').forEach(renderMath);
-  }
+  window.addEventListener('DOMContentLoaded', () => {
+    showScreen('screen-topics');
+    loadStudentProfile();
+  });
 </script>
 </body>
 </html>
