@@ -35,32 +35,18 @@ question_bank = pd.read_csv('question_bank.csv')
 
 # ── Skill Map ────────────────────────────────────────────────
 skill_map = {
-    'Algebra': ['Linear Equations', 'Writing Expressions',
-                'Simplifying Expressions by Collecting Like Terms',
-                'Expanding Single Brackets', 'Expanding Double Brackets'],
-    'Quadratics': ['Quadratic Equations', 'Completing the Square',
-                   'Factorising into a Double Bracket'],
-    'Geometry': ['Angles in Triangles', 'Angles in Polygons',
-                 'Properties of Triangles', 'Basic Angle Facts (straight line, opposite, around a point, etc)'],
-    'Trigonometry': ['Right-angled Triangles (SOHCAHTOA)'],
-    'Statistics': ['Averages (mean, median, mode) from a List of Data',
-                   'Range and Interquartile Range from a List of Data',
-                   'Averages and Range from Frequency Table'],
-    'Probability': ['Probability of Single Events',
-                    'Combined Events',
-                    'Tree Diagrams with Dependent Events'],
-    'Fractions': ['Adding and Subtracting Fractions', 'Multiplying Fractions',
-                  'Dividing Fractions', 'Simplifying Fractions'],
-    'Ratio & Proportion': ['Sharing in a Ratio', 'Direct Proportion',
-                           'Indirect (Inverse) Proportion'],
-    'Graphs & Coordinates': ['Finding the Equation of a Line',
-                             'Gradient as change in y over change in x',
-                             'Plotting Lines from Tables of Values'],
-    'Sequences': ['Linear Sequences (nth term)', 'Quadratic Sequences'],
-    'Indices & Surds': ['Laws of Indices', 'Simplifying Surds',
-                        'Operations with Surds'],
-    'Mensuration': ['Area of Simple Shapes', 'Volume of Prisms', 'Perimeter',
-                    'Surface Area of Prisms']
+    'Limits & Continuity': ['Limits by Substitution', 'L Hopital Rule', 'Continuity at a Point', 'Sandwich Theorem'],
+    'Differentiation': ['First Principles', 'Chain Rule', 'Product Rule', 'Quotient Rule', 'Implicit Differentiation'],
+    'Integration': ['Indefinite Integrals', 'Definite Integrals', 'Integration by Substitution', 'Integration by Parts'],
+    'Differential Equations': ['Variable Separable', 'Homogeneous Differential Equations', 'Linear Differential Equations'],
+    'Matrices & Determinants': ['Matrix Operations', 'Determinants', 'Inverse of a Matrix', 'System of Equations'],
+    'Vectors & 3D Geometry': ['Dot Product', 'Cross Product', 'Lines in 3D', 'Planes in 3D', 'Angle Between Lines and Planes'],
+    'Coordinate Geometry': ['Parabola', 'Ellipse', 'Hyperbola', 'Circle'],
+    'Straight Lines & Circles': ['Equation of a Line', 'Distance Formula', 'Equation of a Circle', 'Tangent to a Circle'],
+    'Probability & Statistics': ['Bayes Theorem', 'Binomial Distribution', 'Conditional Probability', 'Mean and Variance'],
+    'Complex Numbers': ['Argument and Modulus', 'Polar Form', 'De Moivres Theorem', 'Roots of Unity'],
+    'Sequences & Series': ['AP and GP', 'Sum of Series', 'Binomial Theorem', 'Mathematical Induction'],
+    'Trigonometry': ['Trigonometric Identities', 'Inverse Trigonometry', 'Solutions of Triangles', 'Heights and Distances']
 }
 
 # ── Tag Questions with Skills ─────────────────────────────────
@@ -109,58 +95,56 @@ def pick_question(skill, seen_ids=[]):
     return question
 
 def generate_question_v2(skill, p_known):
-    
     if p_known < 0.45:
         difficulty = "medium"
-        difficulty_guide = "requires applying the concept in a slightly new context, 2-3 steps, but still multi-step"
+        difficulty_guide = "multi-step problem requiring careful application of concepts"
     elif p_known < 0.60:
         difficulty = "medium-hard"
-        difficulty_guide = "multi step problem requiring some deeper thinking, not immediately obvious"
+        difficulty_guide = "problem requiring strong conceptual understanding and multiple steps"
     elif p_known < 0.75:
         difficulty = "hard"
-        difficulty_guide = "combines two concepts together, exam style question, requires planning"
+        difficulty_guide = "challenging problem similar to JEE Mains level"
     elif p_known < 0.85:
         difficulty = "very hard"
-        difficulty_guide = "complex multi step problem, competitive exam level, requires strong understanding"
+        difficulty_guide = "difficult problem similar to JEE Advanced level"
     else:
         difficulty = "expert"
-        difficulty_guide = "mastery level question, hardest possible, olympiad or top exam standard"
+        difficulty_guide = "highly challenging problem at JEE Advanced top percentile level"
 
-    prompt = f"""You are a challenging maths question generator for high school students preparing for competitive exams. Always generate questions that require multi-step thinking — never straightforward single-step calculations. Questions should feel like they belong in a competitive exam paper, not a textbook exercise. The student must actually think to solve them.
+    subtopics = skill_map.get(skill, [skill])
+    subtopic = random.choice(subtopics)
 
-Generate a {difficulty} {skill} multiple choice question for a Class 10 student aged 14-16.
+    json_template = '{"question": "question text here", "option_a": "first option", "option_b": "second option", "option_c": "third option", "option_d": "fourth option", "correct": "A or B or C or D", "explanation": "clear step by step solution"}'
+
+    prompt = f"""Generate a {difficulty} JEE Maths multiple choice question on {skill} — specifically on {subtopic}.
 Difficulty guide: {difficulty_guide}
+
+This is for a Class 11-12 Indian student preparing for JEE (Joint Entrance Examination).
+Questions must require multi-step thinking — never straightforward single-step calculations.
 
 Strict rules:
 - Exactly one correct answer
 - All 4 options must be plausible — no obviously wrong options
-- Solvable without a calculator
 - No images, diagrams or tables required
-- Use clean simple mathematical notation
+- Use clean mathematical notation
 - Question must be unambiguous
 
-Return ONLY a JSON object, no markdown, no explanation:
-{{
-    "question": "question text here",
-    "option_a": "first option",
-    "option_b": "second option",
-    "option_c": "third option",
-    "option_d": "fourth option",
-    "correct": "A or B or C or D",
-    "explanation": "clear step by step solution showing why the answer is correct"
-}}"""
-
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}]
-    )
+Return ONLY this JSON format, no markdown, no explanation:
+{json_template}"""
 
     try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}]
+        )
         content = response.choices[0].message.content
         content = content.replace('```json', '').replace('```', '').strip()
         question = json.loads(content)
+        question['skill'] = skill
+        question['subtopic'] = subtopic
         return question
-    except:
+    except Exception as e:
+        print(f"Groq failed: {e}")
         return None
 
 # ── Firebase Functions ────────────────────────────────────────
@@ -180,50 +164,17 @@ def load_student(student_id):
 def recommend():
     data = request.json
     student_id = data['student_id']
-    seen_ids = data.get('seen_ids', [])
+    topic = data['topic']
 
     student = load_student(student_id)
-    skill = pick_skill(student)
-    p_known = student['skills'][skill]
+    p_known = student['skills'].get(topic, 0.3)
 
-    # Step 1 — Try Groq first (PRIMARY)
-    groq_question = generate_question_v2(skill, p_known)
+    question = generate_question_v2(topic, p_known)
 
-    if groq_question is not None:
-        return jsonify({
-            'source': 'groq',
-            'skill': skill,
-            'question': groq_question['question'],
-            'option_a': groq_question['option_a'],
-            'option_b': groq_question['option_b'],
-            'option_c': groq_question['option_c'],
-            'option_d': groq_question['option_d'],
-            'correct': groq_question['correct'],
-            'explanation': groq_question['explanation'],
-            'question_id': None
-        })
+    if question is None:
+        return jsonify({'error': 'Failed to generate question'}), 500
 
-    # Step 2 — Groq failed, try Eedi (BACKUP)
-    eedi_question = pick_question(skill, seen_ids)
-
-    if eedi_question is not None:
-        return jsonify({
-            'source': 'eedi',
-            'skill': skill,
-            'question': eedi_question['QuestionText'],
-            'option_a': eedi_question['AnswerAText'],
-            'option_b': eedi_question['AnswerBText'],
-            'option_c': eedi_question['AnswerCText'],
-            'option_d': eedi_question['AnswerDText'],
-            'correct': eedi_question['CorrectAnswer'],
-            'explanation': None,
-            'question_id': int(eedi_question['QuestionId'])
-        })
-
-    # Step 3 — Both failed
-    return jsonify({'error': 'No question available'}), 500
-
-print("✅ /recommend endpoint ready!")
+    return jsonify(question)
 
 @app.route('/attempt', methods=['POST'])
 def attempt():
@@ -245,13 +196,9 @@ def attempt():
         'mastered': new_score >= 0.85
     })
 
-@app.route('/profile', methods=['GET', 'POST'])
+@app.route('/profile', methods=['GET'])
 def profile():
-    if request.method == 'GET':
-        student_id = request.args.get('student_id')
-    else:
-        data = request.json or {}
-        student_id = data.get('student_id')
+    student_id = request.args.get('student_id')
     student = load_student(student_id)
     return jsonify({
         'student_id': student_id,
@@ -260,19 +207,5 @@ def profile():
 
 # ── Run Server ────────────────────────────────────────────────
 if __name__ == '__main__':
-    # Test all 8 levels
-    test_scores = [0.30, 0.38, 0.48, 0.55, 0.63, 0.70, 0.78, 0.87]
-
-    for score in test_scores:
-        try:
-            result = generate_question_v2('Algebra', p_known=score)
-            if result:
-                print(f"P(known)={score} → {result['question'][:60]}...")
-            else:
-                print(f"P(known)={score} → ⚠️ Groq returned bad JSON — retrying skipped")
-        except Exception as e:
-            print(f"P(known)={score} → ⚠️ Groq call failed: {e}")
-        print()
-
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
