@@ -126,11 +126,16 @@ Strict rules:
 - Exactly one correct answer
 - All 4 options must be plausible — no obviously wrong options
 - No images, diagrams or tables required
-- Write ALL mathematical expressions in plain text format only
-- Use ^ for powers instead of LaTeX commands
-- Use / for fractions instead of LaTeX commands
-- Use sqrt() for square roots instead of LaTeX commands
-- Never use backslash LaTeX commands like \\frac, \\sqrt, \\lim
+- Write ALL mathematical expressions wrapped in [MATH]...[/MATH] tags
+- Use proper LaTeX inside the tags
+- Examples:
+  - Fractions: [MATH]\\frac{{1}}{{6}}[/MATH]
+  - Powers: [MATH]x^{{2}}[/MATH]
+  - Limits: [MATH]\\lim_{{x \\to 0}}[/MATH]
+  - Square roots: [MATH]\\sqrt{{x}}[/MATH]
+  - Trigonometry: [MATH]\\sin(x)[/MATH]
+- Never use LaTeX outside of [MATH]...[/MATH] tags
+- Plain text parts of the question should remain plain text
 - Use clean mathematical notation
 - Question must be unambiguous
 
