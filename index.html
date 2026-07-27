@@ -1154,9 +1154,8 @@
 
   function continueAsGuest() {
     studentId = 'guest_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('mathmatch_student_id', studentId);
     document.getElementById('landing-screen').style.display = 'none';
-    showTopicSelectionScreen();
+    showScreen('screen-topics');
   }
 
   // ────────────────────────────────────────────────
