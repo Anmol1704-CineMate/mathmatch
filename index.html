@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MathMatch | JEE Adaptive Math Practice</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="convertAndRenderMath()"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script>
@@ -716,21 +716,39 @@
   }
 
   function convertAndRenderMath() {
-    document.querySelectorAll('.question-text, .option-text, .explanation-text, .option-label, p, .option-btn').forEach(el => {
-      if (el.innerHTML.includes('[MATH]')) {
-        el.innerHTML = el.innerHTML.replace(/\[MATH\]([\s\S]*?)\[\/MATH\]/g, '\\($1\\)');
+    document.querySelectorAll('.question-text, .option-text, .explanation-text, .option-label, p, .option-btn, #p2-question-text').forEach(el => {
+      if (el.innerHTML && el.innerHTML.includes('[MATH]')) {
+        el.innerHTML = el.innerHTML.replace(/\[MATH\]([\s\S]*?)\[\/MATH\]/g, (match, tex) => {
+          const txt = document.createElement('textarea');
+          txt.innerHTML = tex;
+          const decodedTex = txt.value;
+
+          if (typeof katex !== 'undefined' && katex.renderToString) {
+            try {
+              return katex.renderToString(decodedTex, { displayMode: false, throwOnError: false });
+            } catch (e) {
+              return `\\(${decodedTex}\\)`;
+            }
+          }
+          return `\\(${decodedTex}\\)`;
+        });
       }
     });
+
     if (typeof renderMathInElement !== 'undefined') {
-      renderMathInElement(document.body, {
-        delimiters: [
-          { left: '\\(', right: '\\)', display: false },
-          { left: '\\[', right: '\\]', display: true },
-          { left: '$$', right: '$$', display: true },
-          { left: '$', right: '$', display: false }
-        ],
-        throwOnError: false
-      });
+      try {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true },
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      } catch (e) {
+        console.warn('Auto-render error:', e);
+      }
     }
   }
 
