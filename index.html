@@ -760,14 +760,13 @@
   // TOPIC SELECTION SCREEN
   // ────────────────────────────────────────────────
   async function loadStudentProfile() {
-    renderTopicCards();
     showLoading('Loading topics & mastery...');
     try {
       const res = await fetch(`${API}/profile?student_id=${encodeURIComponent(studentId)}`);
       if (res.ok) {
         const data = await res.json();
         if (data && data.skills) {
-          studentSkills = { ...studentSkills, ...data.skills };
+          studentSkills = data.skills;
         }
       }
     } catch (e) {
@@ -841,7 +840,6 @@
 
   async function showTopicSelectionScreen() {
     showScreen('screen-topics');
-    renderTopicCards();
     await loadStudentProfile();
   }
 
