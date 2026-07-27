@@ -1147,7 +1147,7 @@
       studentId = user.uid;
       localStorage.setItem('mathmatch_student_id', studentId);
       document.getElementById('landing-screen').style.display = 'none';
-      showScreen('screen-topics');
+      showTopicSelectionScreen();
     }).catch((error) => {
       console.error("Sign in error:", error);
       document.getElementById('auth-user-info').innerText = 'Sign in error: ' + (error.message || error.code || 'Failed');
@@ -1163,8 +1163,9 @@
 
   function continueAsGuest() {
     studentId = 'guest_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('mathmatch_student_id', studentId);
     document.getElementById('landing-screen').style.display = 'none';
-    showScreen('screen-topics');
+    showTopicSelectionScreen();
   }
 
   // ────────────────────────────────────────────────
@@ -1180,7 +1181,7 @@
         studentId = result.user.uid;
         localStorage.setItem('mathmatch_student_id', studentId);
         document.getElementById('landing-screen').style.display = 'none';
-        showScreen('screen-topics');
+        showTopicSelectionScreen();
       }
     }).catch((error) => {
       console.error("Redirect result error:", error);
