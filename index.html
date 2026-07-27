@@ -537,7 +537,9 @@
     <div id="header-stats" style="display:none">
       <div class="pill">🔥 <span id="stat-streak">0</span> Streak</div>
       <div class="pill">🎯 <span id="stat-acc">0%</span> Acc</div>
+      <div class="pill" id="stat-user-pill" style="display:none">👤 <span id="stat-user-name"></span></div>
     </div>
+    <button id="btn-logout" class="pill-btn" style="display:none;" onclick="logout()">🚪 Logout</button>
   </div>
 </header>
 
@@ -1138,12 +1140,40 @@
   // ────────────────────────────────────────────────
   // AUTH & NAVIGATION HANDLERS
   // ────────────────────────────────────────────────
+  function updateUserUI(user) {
+    const userPill = document.getElementById('stat-user-pill');
+    const userName = document.getElementById('stat-user-name');
+    const logoutBtn = document.getElementById('btn-logout');
+
+    if (user && !user.isAnonymous && user.uid && !user.uid.startsWith('guest_')) {
+      const name = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+      if (userName) userName.textContent = name;
+      if (userPill) userPill.style.display = 'inline-flex';
+      if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    } else {
+      if (userPill) userPill.style.display = 'none';
+      if (logoutBtn) logoutBtn.style.display = 'none';
+    }
+  }
+
+  function logout() {
+    auth.signOut().then(() => {
+      studentId = null;
+      studentSkills = {};
+      localStorage.removeItem('mathmatch_student_id');
+      updateUserUI(null);
+      document.getElementById('landing-screen').style.display = 'flex';
+      showScreen('screen-topics');
+    });
+  }
+
   function signInWithGoogle() {
     document.getElementById('auth-user-info').innerText = 'Signing in...';
     auth.signInWithPopup(provider).then((result) => {
       const user = result.user;
       studentId = user.uid;
       localStorage.setItem('mathmatch_student_id', studentId);
+      updateUserUI(user);
       document.getElementById('landing-screen').style.display = 'none';
       showTopicSelectionScreen();
     }).catch((error) => {
@@ -1162,6 +1192,7 @@
   function continueAsGuest() {
     studentId = 'guest_' + Math.random().toString(36).substr(2, 9);
     localStorage.setItem('mathmatch_student_id', studentId);
+    updateUserUI(null);
     document.getElementById('landing-screen').style.display = 'none';
     showTopicSelectionScreen();
   }
@@ -1178,8 +1209,11 @@
       if (user) {
         studentId = user.uid;
         localStorage.setItem('mathmatch_student_id', studentId);
+        updateUserUI(user);
         document.getElementById('landing-screen').style.display = 'none';
         showTopicSelectionScreen();
+      } else {
+        updateUserUI(null);
       }
     });
 
@@ -1188,6 +1222,7 @@
       if (result && result.user) {
         studentId = result.user.uid;
         localStorage.setItem('mathmatch_student_id', studentId);
+        updateUserUI(result.user);
         document.getElementById('landing-screen').style.display = 'none';
         showTopicSelectionScreen();
       }
