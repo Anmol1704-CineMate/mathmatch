@@ -652,6 +652,7 @@
 
   let selectedTopic = '';
   let studentSkills = {};
+  let studentAttempts = JSON.parse(localStorage.getItem('mathmatch_attempts') || '{}');
 
   let p2Question = null;
   let currentQuestionSkill = '';
@@ -779,12 +780,18 @@
     }
   }
 
-  function getMasteryInfo(score) {
+  function getMasteryInfo(score, attempts = 0) {
     const pct = Math.round((score !== undefined ? score : 0.3) * 100);
     let statusText = '';
     let fillClass = '';
 
-    if (pct < 40) {
+    if (attempts === 0) {
+      statusText = '⚪ Not Started';
+      fillClass = 'fill-avg';
+    } else if (attempts < 3) {
+      statusText = '🟡 In Progress';
+      fillClass = 'fill-avg';
+    } else if (pct < 40) {
       statusText = '🔴 Weak';
       fillClass = 'fill-weak';
     } else if (pct < 70) {
@@ -805,24 +812,40 @@
 
     const skills = studentSkills || {};
 
-    JEE_TOPICS.forEach(topic => {
-      const score = (skills && skills[topic] !== undefined) ? skills[topic] : 0.3;
-      const { pct, statusText, fillClass } = getMasteryInfo(score);
+    JEE_TOPICS.forEach(skill => {
+      const score = (skills && skills[skill] !== undefined) ? skills[skill] : 0.3;
+      const mastery = Math.round(score * 100);
+
+      const attempts = studentAttempts[skill] || 0;
+      let masteryLabel, masteryValue;
+
+      if (attempts === 0) {
+        masteryLabel = "Not Started";
+        masteryValue = "";
+      } else if (attempts < 3) {
+        masteryLabel = "In Progress";
+        masteryValue = "";
+      } else {
+        masteryLabel = mastery + "%";
+        masteryValue = mastery + "%";
+      }
+
+      const { statusText, fillClass } = getMasteryInfo(score, attempts);
 
       const card = document.createElement('div');
       card.className = 'topic-card';
-      card.onclick = () => selectTopic(topic);
+      card.onclick = () => selectTopic(skill);
       card.innerHTML = `
         <div class="topic-card-header">
-          <div class="topic-title">${topic}</div>
+          <div class="topic-title">${skill}</div>
           <div class="topic-status">${statusText}</div>
         </div>
         <div class="topic-meta">
           <span>Mastery</span>
-          <span style="font-weight: 700; color: var(--text);">${pct}%</span>
+          <span style="font-weight: 700; color: var(--text);">${masteryLabel}</span>
         </div>
         <div class="topic-progress-bar">
-          <div class="topic-progress-fill ${fillClass}" style="width: ${pct}%;"></div>
+          <div class="topic-progress-fill ${fillClass}" style="width: ${attempts === 0 ? 0 : (attempts < 3 ? 30 : mastery)}%;"></div>
         </div>
       `;
       grid.appendChild(card);
@@ -966,6 +989,12 @@
       questionsAnswered++;
       if (res && res.new_score !== undefined) {
         studentSkills[selectedTopic] = res.new_score;
+      }
+      const currentTopic = selectedTopic;
+      if (currentTopic) {
+        if (!studentAttempts[currentTopic]) studentAttempts[currentTopic] = 0;
+        studentAttempts[currentTopic]++;
+        localStorage.setItem('mathmatch_attempts', JSON.stringify(studentAttempts));
       }
     }).catch(e => {
       console.warn('Attempt post failed:', e.message);
