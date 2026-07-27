@@ -1055,7 +1055,8 @@
   async function showProgressDashboard() {
     showLoading('Fetching your progress profile...');
     try {
-      const data = await apiPost('/profile', { student_id: studentId });
+      const res = await fetch(`${API}/profile?student_id=${encodeURIComponent(studentId)}`);
+      const data = res.ok ? await res.json() : {};
       console.log('Profile response:', JSON.stringify(data));
       
       const skills = data.skills || {};
@@ -1139,8 +1140,17 @@
     document.querySelectorAll('.screen.active').forEach(renderMath);
   }
 
-  function showTopicScreen() {
+  async function showTopicScreen() {
     showScreen('screen-setup');
+    try {
+      const res = await fetch(`${API}/profile?student_id=${encodeURIComponent(studentId)}`);
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Profile loaded:', data);
+      }
+    } catch (e) {
+      console.warn('Could not fetch profile:', e.message);
+    }
   }
 
   function signInWithGoogle() {
