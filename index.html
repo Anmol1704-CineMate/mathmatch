@@ -767,7 +767,7 @@
       if (res.ok) {
         const data = await res.json();
         if (data && data.skills) {
-          studentSkills = data.skills;
+          studentSkills = { ...studentSkills, ...data.skills };
         }
       }
     } catch (e) {
@@ -1174,6 +1174,16 @@
   document.addEventListener("DOMContentLoaded", function() {
     renderTopicCards();
     convertAndRenderMath();
+
+    // Automatically handle persistent auth state
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        studentId = user.uid;
+        localStorage.setItem('mathmatch_student_id', studentId);
+        document.getElementById('landing-screen').style.display = 'none';
+        showTopicSelectionScreen();
+      }
+    });
 
     // Handle redirect result if signInWithRedirect was used
     auth.getRedirectResult().then((result) => {

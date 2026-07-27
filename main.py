@@ -174,7 +174,13 @@ def load_student(student_id):
     if db:
         doc = db.collection('students').document(student_id).get()
         if doc.exists:
-            return doc.to_dict()
+            student_data = doc.to_dict()
+            if 'skills' not in student_data or not isinstance(student_data['skills'], dict):
+                student_data['skills'] = {}
+            for skill in skill_map.keys():
+                if skill not in student_data['skills']:
+                    student_data['skills'][skill] = 0.3
+            return student_data
     return create_student_profile(student_id)
 
 # ── Flask Endpoints ───────────────────────────────────────────
