@@ -1141,14 +1141,23 @@
   // AUTH & NAVIGATION HANDLERS
   // ────────────────────────────────────────────────
   function signInWithGoogle() {
+    document.getElementById('auth-user-info').innerText = 'Signing in...';
     auth.signInWithPopup(provider).then((result) => {
       const user = result.user;
       studentId = user.uid;
       localStorage.setItem('mathmatch_student_id', studentId);
       document.getElementById('landing-screen').style.display = 'none';
-      showTopicSelectionScreen();
+      showScreen('screen-topics');
     }).catch((error) => {
-      document.getElementById('auth-user-info').innerText = 'Sign in failed. Try again.';
+      console.error("Sign in error:", error);
+      document.getElementById('auth-user-info').innerText = 'Sign in error: ' + (error.message || error.code || 'Failed');
+      
+      // Fallback to redirect if popup is blocked or fails
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.code === 'auth/unauthorized-domain') {
+        setTimeout(() => {
+          auth.signInWithRedirect(provider);
+        }, 1200);
+      }
     });
   }
 
@@ -1164,6 +1173,18 @@
   document.addEventListener("DOMContentLoaded", function() {
     renderTopicCards();
     convertAndRenderMath();
+
+    // Handle redirect result if signInWithRedirect was used
+    auth.getRedirectResult().then((result) => {
+      if (result && result.user) {
+        studentId = result.user.uid;
+        localStorage.setItem('mathmatch_student_id', studentId);
+        document.getElementById('landing-screen').style.display = 'none';
+        showScreen('screen-topics');
+      }
+    }).catch((error) => {
+      console.error("Redirect result error:", error);
+    });
   });
 </script>
 </body>
