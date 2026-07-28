@@ -1105,6 +1105,10 @@
 
   function closeCheckinModal() {
     document.getElementById('checkin-modal').style.display = 'none';
+    if (dailyAttempts.count >= 7 && !isPro) {
+      document.getElementById('pro-modal').style.display = 'flex';
+      return;
+    }
     fetchPhase2Question();
   }
 
