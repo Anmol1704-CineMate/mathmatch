@@ -58,28 +58,58 @@ def get_skill(subject_name):
 
 question_bank['skill'] = question_bank['SubjectName'].apply(get_skill)
 
-# ── BKT Parameters ───────────────────────────────────────────
-P_GUESS = 0.25
-P_SLIP = 0.1
-P_LEARN = 0.1
-
-# ── BKT Functions ────────────────────────────────────────────
+# ── Student Functions ──────────────────────────────────────────
 def create_student_profile(student_id):
-    profile = {'student_id': student_id, 'skills': {}}
-    for skill in skill_map.keys():
-        profile['skills'][skill] = 0.3
-    return profile
+    return {
+        'student_id': student_id,
+        'skills': {
+            'Limits & Continuity': 30,
+            'Differentiation': 30,
+            'Integration': 30,
+            'Differential Equations': 30,
+            'Matrices & Determinants': 30,
+            'Vectors & 3D Geometry': 30,
+            'Coordinate Geometry': 30,
+            'Straight Lines & Circles': 30,
+            'Probability & Statistics': 30,
+            'Complex Numbers': 30,
+            'Sequences & Series': 30,
+            'Trigonometry': 30
+        },
+        'streaks': {
+            'Limits & Continuity': 0,
+            'Differentiation': 0,
+            'Integration': 0,
+            'Differential Equations': 0,
+            'Matrices & Determinants': 0,
+            'Vectors & 3D Geometry': 0,
+            'Coordinate Geometry': 0,
+            'Straight Lines & Circles': 0,
+            'Probability & Statistics': 0,
+            'Complex Numbers': 0,
+            'Sequences & Series': 0,
+            'Trigonometry': 0
+        }
+    }
 
-def update_skill(p_known, correct):
-    if correct:
-        numerator = p_known * (1 - P_SLIP)
-        denominator = (p_known * (1 - P_SLIP)) + ((1 - p_known) * P_GUESS)
+def update_streak(mastery, streak, is_correct):
+    if is_correct:
+        if streak >= 0:
+            streak += 1
+        else:
+            streak = 1
     else:
-        numerator = p_known * P_SLIP
-        denominator = (p_known * P_SLIP) + ((1 - p_known) * (1 - P_GUESS))
-    p_updated = numerator / denominator
-    p_final = p_updated + ((1 - p_updated) * P_LEARN)
-    return round(p_final, 4)
+        if streak <= 0:
+            streak -= 1
+        else:
+            streak = -1
+    if streak == 3:
+        mastery = min(95, mastery + 5)
+        streak = 0
+    elif streak == -3:
+        mastery = max(10, mastery - 5)
+        streak = 0
+    return mastery, streak
 
 def pick_skill(student):
     skills = student['skills']
@@ -94,17 +124,17 @@ def pick_question(skill, seen_ids=[]):
     question = unseen.sample(1).iloc[0]
     return question
 
-def generate_question_v2(skill, p_known):
-    if p_known < 0.45:
+def generate_question_v2(skill, mastery):
+    if mastery < 40:
         difficulty = "medium"
         difficulty_guide = "multi-step problem requiring careful application of concepts"
-    elif p_known < 0.60:
+    elif mastery < 55:
         difficulty = "medium-hard"
         difficulty_guide = "problem requiring strong conceptual understanding and multiple steps"
-    elif p_known < 0.75:
+    elif mastery < 70:
         difficulty = "hard"
         difficulty_guide = "challenging problem similar to JEE Mains level"
-    elif p_known < 0.85:
+    elif mastery < 85:
         difficulty = "very hard"
         difficulty_guide = "difficult problem similar to JEE Advanced level"
     else:
@@ -166,9 +196,12 @@ Return ONLY this JSON format, no markdown, no explanation:
         return None
 
 # ── Firebase Functions ────────────────────────────────────────
-def save_student(student):
+def save_student(student_id, student=None):
+    if student is None:
+        student = student_id
+        student_id = student.get('student_id', 'guest')
     if db:
-        db.collection('students').document(student['student_id']).set(student)
+        db.collection('students').document(student_id).set(student)
 
 def load_student(student_id):
     if db:
@@ -179,7 +212,12 @@ def load_student(student_id):
                 student_data['skills'] = {}
             for skill in skill_map.keys():
                 if skill not in student_data['skills']:
-                    student_data['skills'][skill] = 0.3
+                    student_data['skills'][skill] = 30
+            if 'streaks' not in student_data or not isinstance(student_data['streaks'], dict):
+                student_data['streaks'] = {}
+            for skill in skill_map.keys():
+                if skill not in student_data['streaks']:
+                    student_data['streaks'][skill] = 0
             return student_data
     return create_student_profile(student_id)
 
@@ -192,11 +230,11 @@ def recommend():
         topic = data.get('topic') or 'Limits & Continuity'
 
         student = load_student(student_id)
-        p_known = 0.3
+        mastery = 30
         if isinstance(student, dict) and 'skills' in student:
-            p_known = student['skills'].get(topic, 0.3)
+            mastery = student['skills'].get(topic, 30)
 
-        question = generate_question_v2(topic, p_known)
+        question = generate_question_v2(topic, mastery)
 
         if question is None:
             question = {
@@ -235,20 +273,18 @@ def attempt():
         is_correct = data.get('is_correct', False)
 
         student = load_student(student_id)
-        old_score = student['skills'].get(skill, 0.3)
-        new_score = update_skill(old_score, is_correct)
-        student['skills'][skill] = new_score
-        save_student(student)
-
-        return jsonify({
-            'skill': skill,
-            'old_score': old_score,
-            'new_score': new_score,
-            'mastered': new_score >= 0.85
-        })
+        mastery = student['skills'][skill]
+        streak = student.get('streaks', {}).get(skill, 0)
+        new_mastery, new_streak = update_streak(mastery, streak, is_correct)
+        student['skills'][skill] = new_mastery
+        if 'streaks' not in student:
+            student['streaks'] = {}
+        student['streaks'][skill] = new_streak
+        save_student(student_id, student)
+        return jsonify({'new_mastery': new_mastery, 'streak': new_streak, 'mastered': new_mastery >= 85})
     except Exception as e:
         print(f"Error in /attempt: {e}")
-        return jsonify({'skill': 'Limits & Continuity', 'old_score': 0.3, 'new_score': 0.3, 'mastered': False})
+        return jsonify({'new_mastery': 30, 'streak': 0, 'mastered': False})
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
