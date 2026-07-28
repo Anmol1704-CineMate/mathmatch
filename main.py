@@ -178,7 +178,14 @@ Strict rules:
 - Use clean mathematical notation
 - Question must be unambiguous
 
-The explanation must be maximum 3 steps. Each step is one sentence. No long paragraphs. Format: Step 1: ... Step 2: ... Step 3: ...
+The explanation must follow the style of a Kota JEE teacher explaining to a student who got it wrong.
+Rules:
+- Maximum 3 steps
+- Each step maximum 15 words
+- Be direct — no justification, no "given the options", no academic language
+- Each step must move the solution forward
+- Final step must state the answer clearly
+- Format: Step 1: ... Step 2: ... Step 3: ...
 
 Return ONLY this JSON format, no markdown, no explanation:
 {json_template}"""
