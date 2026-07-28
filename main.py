@@ -153,7 +153,7 @@ def generate_question_v2(skill, mastery):
     subtopics = skill_map.get(skill, [skill])
     subtopic = random.choice(subtopics)
 
-    json_template = '{"question": "question text here", "option_a": "first option", "option_b": "second option", "option_c": "third option", "option_d": "fourth option", "correct": "A or B or C or D", "explanation": "clear step by step solution"}'
+    json_template = '{"question": "question text here", "option_a": "first option", "option_b": "second option", "option_c": "third option", "option_d": "fourth option", "correct": "A or B or C or D", "explanation": "Step 1: [first step]. Step 2: [second step]. Step 3: [final step and answer]."}'
 
     prompt = f"""Generate a {difficulty} JEE Maths multiple choice question on {skill} — specifically on {subtopic}.
 Difficulty guide: {difficulty_guide}
@@ -177,6 +177,8 @@ Strict rules:
 - Plain text parts of the question should remain plain text
 - Use clean mathematical notation
 - Question must be unambiguous
+
+The explanation must be maximum 3 steps. Each step is one sentence. No long paragraphs. Format: Step 1: ... Step 2: ... Step 3: ...
 
 Return ONLY this JSON format, no markdown, no explanation:
 {json_template}"""
