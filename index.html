@@ -653,6 +653,12 @@
   let selectedTopic = '';
   let studentSkills = {};
   let studentAttempts = JSON.parse(localStorage.getItem('mathmatch_attempts') || '{}');
+  let dailyAttempts = JSON.parse(localStorage.getItem('mathmatch_daily') || '{"count":0,"date":""}');
+  const today = new Date().toISOString().split('T')[0];
+  if (dailyAttempts.date !== today) {
+    dailyAttempts = { count: 0, date: today };
+    localStorage.setItem('mathmatch_daily', JSON.stringify(dailyAttempts));
+  }
 
   let p2Question = null;
   let currentQuestionSkill = '';
@@ -991,6 +997,8 @@
       if (currentTopic) {
         if (!studentAttempts[currentTopic]) studentAttempts[currentTopic] = 0;
         studentAttempts[currentTopic]++;
+        dailyAttempts.count++;
+        localStorage.setItem('mathmatch_daily', JSON.stringify(dailyAttempts));
         localStorage.setItem('mathmatch_attempts', JSON.stringify(studentAttempts));
       }
     }).catch(e => {
