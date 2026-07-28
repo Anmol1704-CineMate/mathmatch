@@ -814,7 +814,8 @@
   }
 
   function getMasteryInfo(score, attempts = 0) {
-    const pct = Math.round((score !== undefined ? score : 0.3) * 100);
+    const raw = (score !== undefined ? score : 0.3);
+    const pct = Math.round(raw > 1 ? raw : raw * 100);
     let statusText = '';
     let fillClass = '';
 
@@ -847,7 +848,7 @@
 
     JEE_TOPICS.forEach(skill => {
       const score = (skills && skills[skill] !== undefined) ? skills[skill] : 0.3;
-      const mastery = Math.round(score * 100);
+      const mastery = Math.round(score > 1 ? score : score * 100);
 
       const attempts = (studentAttempts && skill in studentAttempts && studentAttempts[skill] !== undefined) ? Number(studentAttempts[skill]) : 0;
       let masteryLabel;
