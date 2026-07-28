@@ -494,6 +494,28 @@
 </div>
 
 <!-- 5 Question Check-in Modal -->
+<div id="pro-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-icon">🔒</div>
+      <h2>You've used 7 free questions today</h2>
+    </div>
+    <div class="modal-body">
+      <div class="checkin-weakest-box">
+        <div class="checkin-weakest-icon">⚡</div>
+        <div>
+          <div class="checkin-weakest-label">Upgrade to Pro</div>
+          <div class="checkin-weakest-value">Unlimited questions + Weak area report — ₹199 one-time</div>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+      <button class="btn" onclick="startRazorpayPayment()">Upgrade to Pro ₹199 →</button>
+      <button class="btn secondary" style="margin-top:0;" onclick="closeProModal()">Maybe later</button>
+    </div>
+  </div>
+</div>
+
 <div id="checkin-modal" class="modal-overlay" style="display: none;">
   <div class="modal-card">
     <div class="modal-header">
@@ -652,6 +674,7 @@
 
   let selectedTopic = '';
   let studentSkills = {};
+  let isPro = false;
   let studentAttempts = JSON.parse(localStorage.getItem('mathmatch_attempts') || '{}');
   let dailyAttempts = JSON.parse(localStorage.getItem('mathmatch_daily') || '{"count":0,"date":""}');
   const today = new Date().toISOString().split('T')[0];
@@ -999,12 +1022,24 @@
         studentAttempts[currentTopic]++;
         dailyAttempts.count++;
         localStorage.setItem('mathmatch_daily', JSON.stringify(dailyAttempts));
+        if (dailyAttempts.count >= 7 && !isPro) {
+          document.getElementById('pro-modal').style.display = 'flex';
+          return;
+        }
         localStorage.setItem('mathmatch_attempts', JSON.stringify(studentAttempts));
       }
     }).catch(e => {
       console.warn('Attempt post failed:', e.message);
       questionsAnswered++;
     });
+  }
+
+  function closeProModal() {
+    document.getElementById('pro-modal').style.display = 'none';
+  }
+
+  function startRazorpayPayment() {
+    console.log('Razorpay coming soon');
   }
 
   function onNextQuestionClick() {
