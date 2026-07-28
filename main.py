@@ -258,6 +258,7 @@ def recommend():
         if isinstance(student, dict) and 'skills' in student:
             mastery = student['skills'].get(topic, 30)
 
+        subtopic = random.choice(skill_map.get(topic, [topic]))
         question = generate_question_v2(topic, mastery)
 
         if question is None:
@@ -270,12 +271,13 @@ def recommend():
                 'correct': 'B',
                 'explanation': 'Standard trigonometric limit: [MATH]\\lim_{x \\to 0} \\frac{\\sin(x)}{x} = 1[/MATH].',
                 'skill': topic,
-                'subtopic': 'Standard Limits'
+                'subtopic': subtopic
             }
 
         return jsonify(question)
     except Exception as e:
         print(f"Error in /recommend: {e}")
+        subtopic = 'Standard Limits'
         return jsonify({
             'question': 'Evaluate the limit: [MATH]\\lim_{x \\to 0} \\frac{\\sin(x)}{x}[/MATH]',
             'option_a': '[MATH]0[/MATH]',
@@ -285,7 +287,7 @@ def recommend():
             'correct': 'B',
             'explanation': 'Standard trigonometric limit: [MATH]\\lim_{x \\to 0} \\frac{\\sin(x)}{x} = 1[/MATH].',
             'skill': 'Limits & Continuity',
-            'subtopic': 'Standard Limits'
+            'subtopic': subtopic
         })
 
 @app.route('/attempt', methods=['POST'])
