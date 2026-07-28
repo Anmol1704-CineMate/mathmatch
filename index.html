@@ -1121,7 +1121,7 @@
       }
 
       const practicedScore = skills[practicedSkill] !== undefined ? skills[practicedSkill] : 0.3;
-      const practicedPct = Math.round(practicedScore * 100);
+      const practicedPct = Math.round(practicedScore > 1 ? practicedScore : practicedScore * 100);
 
       document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: ${practicedPct}%`;
       document.getElementById('checkin-practiced-fill').style.width = `${practicedPct}%`;
@@ -1136,12 +1136,12 @@
         }
       });
 
-      const weakestPct = Math.round(lowestScore * 100);
+      const weakestPct = Math.round(lowestScore > 1 ? lowestScore : lowestScore * 100);
       document.getElementById('checkin-weakest-info').textContent = `Weakest: ${weakestSkill} — ${weakestPct}%`;
     } catch (err) {
       console.warn('Could not fetch profile for check-in modal:', err);
       const score = studentSkills[practicedSkill] !== undefined ? studentSkills[practicedSkill] : 0.3;
-      const pct = Math.round(score * 100);
+      const pct = Math.round(score > 1 ? score : score * 100);
       document.getElementById('checkin-practiced-info').textContent = `${practicedSkill}: ${pct}%`;
       document.getElementById('checkin-weakest-info').textContent = 'Check profile for full analytics';
     } finally {
@@ -1184,7 +1184,7 @@
       
       JEE_TOPICS.forEach(skillName => {
         const score = skills[skillName] !== undefined ? skills[skillName] : 0.3;
-        const pct = Math.round(score * 100);
+        const pct = Math.round(score > 1 ? score : score * 100);
         
         if (score < lowestScore) {
           lowestScore = score;
@@ -1228,7 +1228,7 @@
       
       if (weakestSkill) {
         document.getElementById('weakest-skill-name').textContent = weakestSkill;
-        document.getElementById('weakest-skill-pct').textContent = Math.round(lowestScore * 100) + '%';
+        document.getElementById('weakest-skill-pct').textContent = Math.round(lowestScore > 1 ? lowestScore : lowestScore * 100) + '%';
         document.getElementById('weakest-skill-card').style.display = 'flex';
       } else {
         document.getElementById('weakest-skill-card').style.display = 'none';
