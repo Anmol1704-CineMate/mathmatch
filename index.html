@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MathMatch | JEE Adaptive Math Practice</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
@@ -1041,8 +1042,52 @@
     document.getElementById('pro-modal').style.display = 'none';
   }
 
-  function startRazorpayPayment() {
-    console.log('Razorpay coming soon');
+  async function startRazorpayPayment() {
+    try {
+      const orderRes = await fetch(`${API}/create-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId })
+      });
+      const orderData = await orderRes.json();
+
+      const options = {
+        key: 'rzp_test_TIxtG5heL6S7Mz',
+        amount: orderData.amount,
+        currency: 'INR',
+        name: 'MathMatch',
+        description: 'Pro — Unlimited Questions',
+        order_id: orderData.order_id,
+        handler: async function(response) {
+          const verifyRes = await fetch(`${API}/verify-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              student_id: studentId,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            })
+          });
+          const verifyData = await verifyRes.json();
+          if (verifyData.status === 'ok') {
+            isPro = true;
+            document.getElementById('pro-modal').style.display = 'none';
+            alert('You are now Pro! Unlimited questions unlocked 🎉');
+          } else {
+            alert('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: { name: '', email: '', contact: '' },
+        theme: { color: '#6c63ff' }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    } catch (e) {
+      alert('Could not start payment. Please try again.');
+      console.error(e);
+    }
   }
 
   function onNextQuestionClick() {
