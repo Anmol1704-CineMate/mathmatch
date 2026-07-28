@@ -1070,7 +1070,7 @@
             })
           });
           const verifyData = await verifyRes.json();
-          if (verifyData.status === 'ok') {
+          if (verifyData.success === true) {
             isPro = true;
             document.getElementById('pro-modal').style.display = 'none';
             alert('You are now Pro! Unlimited questions unlocked 🎉');
