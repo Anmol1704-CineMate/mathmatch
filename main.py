@@ -177,6 +177,8 @@ Strict rules:
 - Plain text parts of the question should remain plain text
 - Use clean mathematical notation
 - Question must be unambiguous
+- The question MUST be strictly about {skill} — do NOT generate questions from any other topic
+- If the subtopic involves a concept from another chapter, find a different subtopic within {skill}
 
 Write the explanation like a Kota JEE teacher explaining to a student who just got this wrong.
 Rules:
