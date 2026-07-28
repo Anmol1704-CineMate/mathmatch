@@ -816,18 +816,15 @@
       const score = (skills && skills[skill] !== undefined) ? skills[skill] : 0.3;
       const mastery = Math.round(score * 100);
 
-      const attempts = studentAttempts[skill] || 0;
-      let masteryLabel, masteryValue;
+      const attempts = (studentAttempts && skill in studentAttempts && studentAttempts[skill] !== undefined) ? Number(studentAttempts[skill]) : 0;
+      let masteryLabel;
 
       if (attempts === 0) {
         masteryLabel = "Not Started";
-        masteryValue = "";
       } else if (attempts < 3) {
         masteryLabel = "In Progress";
-        masteryValue = "";
       } else {
         masteryLabel = mastery + "%";
-        masteryValue = mastery + "%";
       }
 
       const { statusText, fillClass } = getMasteryInfo(score, attempts);
@@ -1189,7 +1186,9 @@
     auth.signOut().then(() => {
       studentId = null;
       studentSkills = {};
+      studentAttempts = {};
       localStorage.removeItem('mathmatch_student_id');
+      localStorage.removeItem('mathmatch_attempts');
       updateUserUI(null);
       document.getElementById('landing-screen').style.display = 'flex';
       showScreen('screen-topics');
