@@ -178,14 +178,18 @@ Strict rules:
 - Use clean mathematical notation
 - Question must be unambiguous
 
-The explanation must follow the style of a Kota JEE teacher explaining to a student who got it wrong.
+Write the explanation like a Kota JEE teacher explaining to a student who just got this wrong.
 Rules:
-- Maximum 3 steps
-- Each step maximum 15 words
-- Be direct — no justification, no "given the options", no academic language
-- Each step must move the solution forward
-- Final step must state the answer clearly
-- Format: Step 1: ... Step 2: ... Step 3: ...
+- Exactly 3 steps
+- Each step must show BOTH the action AND the result with actual numbers or expressions
+- Step 1: Set up the problem — simplify, substitute, or identify the key technique
+- Step 2: Do the main calculation — show the working with actual math
+- Step 3: State the final answer clearly and why it is correct
+- Maximum 30 words per step
+- Use plain English for actions, use [MATH]...[/MATH] tags for all expressions
+- Never say "given the options" or "based on the problem" or "we can see that"
+- Never repeat the question in the explanation
+- Be direct, specific, and clear — every word must help the student understand
 
 Return ONLY this JSON format, no markdown, no explanation:
 {json_template}"""
