@@ -15,6 +15,14 @@ CORS(app)
 # ── Groq Setup ───────────────────────────────────────────────
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
+# ── Razorpay Setup ───────────────────────────────────────────
+import razorpay
+
+RAZORPAY_KEY_ID = "rzp_test_TIxtG5heL6S7Mz"
+RAZORPAY_KEY_SECRET = "HtHPl4BnAyeXX34ykJXTl9HT"
+
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
 # ── Firebase Setup ───────────────────────────────────────────
 if not firebase_admin._apps:
     firebase_key = os.environ.get("FIREBASE_CREDENTIALS")
@@ -89,7 +97,8 @@ def create_student_profile(student_id):
             'Complex Numbers': 0,
             'Sequences & Series': 0,
             'Trigonometry': 0
-        }
+        },
+        'is_pro': False
     }
 
 def update_streak(mastery, streak, is_correct):
@@ -297,11 +306,47 @@ def profile():
         student = load_student(student_id)
         return jsonify({
             'student_id': student_id,
-            'skills': student.get('skills', {})
+            'skills': student.get('skills', {}),
+            'is_pro': student.get('is_pro', False)
         })
     except Exception as e:
         print(f"Error in /profile: {e}")
-        return jsonify({'student_id': 'guest', 'skills': {}})
+        return jsonify({'student_id': 'guest', 'skills': {}, 'is_pro': False})
+
+@app.route('/create-order', methods=['POST'])
+def create_order():
+    try:
+        order = razorpay_client.order.create({
+            'amount': 19900,
+            'currency': 'INR',
+            'payment_capture': 1
+        })
+        return jsonify({'order_id': order['id']})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/verify-payment', methods=['POST'])
+def verify_payment():
+    try:
+        data = request.get_json()
+        payment_id = data['razorpay_payment_id']
+        order_id = data['razorpay_order_id']
+        signature = data['razorpay_signature']
+        student_id = data['student_id']
+
+        razorpay_client.utility.verify_payment_signature({
+            'razorpay_order_id': order_id,
+            'razorpay_payment_id': payment_id,
+            'razorpay_signature': signature
+        })
+
+        student = load_student(student_id)
+        student['is_pro'] = True
+        save_student(student_id, student)
+
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
 
 # ── Run Server ────────────────────────────────────────────────
 if __name__ == '__main__':
