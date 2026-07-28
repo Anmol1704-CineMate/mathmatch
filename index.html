@@ -674,9 +674,9 @@
 
   let selectedTopic = '';
   let studentSkills = {};
-  let isPro = false;
   let studentAttempts = JSON.parse(localStorage.getItem('mathmatch_attempts') || '{}');
   let dailyAttempts = JSON.parse(localStorage.getItem('mathmatch_daily') || '{"count":0,"date":""}');
+  let isPro = false;
   const today = new Date().toISOString().split('T')[0];
   if (dailyAttempts.date !== today) {
     dailyAttempts = { count: 0, date: today };
@@ -799,6 +799,9 @@
         const data = await res.json();
         if (data && data.skills) {
           studentSkills = data.skills;
+        }
+        if (data && data.is_pro) {
+          isPro = true;
         }
       }
     } catch (e) {
