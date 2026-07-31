@@ -23,15 +23,6 @@ RAZORPAY_KEY_SECRET = "DodhRxkkIPoAEeE30OBqYq5H"
 
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
-@app.route('/debug-keys')
-def debug_keys():
-    return jsonify({
-        'key_id': RAZORPAY_KEY_ID,
-        'secret_prefix': RAZORPAY_KEY_SECRET[:6],
-        'env_key_id': os.environ.get('RAZORPAY_KEY_ID', 'NOT_SET'),
-        'env_secret_prefix': os.environ.get('RAZORPAY_KEY_SECRET', 'NOT_SET')[:6],
-    })
-
 # ── Firebase Setup ───────────────────────────────────────────
 if not firebase_admin._apps:
     firebase_key = os.environ.get("FIREBASE_CREDENTIALS")
