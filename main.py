@@ -19,7 +19,7 @@ client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 import razorpay
 
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', 'rzp_live_TK9JxtlFsAsp1k')
-RAZORPAY_KEY_SECRET = "HtHPl4BnAyeXX34ykJXTl9HT"
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'DodhRxkkIPoAEeE30OBqYq5H')
 
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 

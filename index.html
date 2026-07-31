@@ -1052,9 +1052,15 @@
       });
       const orderData = await orderRes.json();
 
+      if (!orderRes.ok || orderData.error || !orderData.order_id) {
+        alert('Could not initiate payment. Please try again later.');
+        console.error('Create order error:', orderData);
+        return;
+      }
+
       const options = {
         key: 'rzp_live_TK9JxtlFsAsp1k',
-        amount: orderData.amount,
+        amount: orderData.amount || 19900,
         currency: 'INR',
         name: 'MathMatch',
         description: 'Pro — Unlimited Questions',
