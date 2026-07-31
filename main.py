@@ -71,18 +71,18 @@ def create_student_profile(student_id):
     return {
         'student_id': student_id,
         'skills': {
-            'Limits & Continuity': 30,
-            'Differentiation': 30,
-            'Integration': 30,
-            'Differential Equations': 30,
-            'Matrices & Determinants': 30,
-            'Vectors & 3D Geometry': 30,
-            'Coordinate Geometry': 30,
-            'Straight Lines & Circles': 30,
-            'Probability & Statistics': 30,
-            'Complex Numbers': 30,
-            'Sequences & Series': 30,
-            'Trigonometry': 30
+            'Limits & Continuity': 40,
+            'Differentiation': 40,
+            'Integration': 40,
+            'Differential Equations': 40,
+            'Matrices & Determinants': 40,
+            'Vectors & 3D Geometry': 40,
+            'Coordinate Geometry': 40,
+            'Straight Lines & Circles': 40,
+            'Probability & Statistics': 40,
+            'Complex Numbers': 40,
+            'Sequences & Series': 40,
+            'Trigonometry': 40
         },
         'streaks': {
             'Limits & Continuity': 0,
