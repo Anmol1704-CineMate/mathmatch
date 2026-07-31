@@ -338,7 +338,7 @@ def create_order():
             'currency': 'INR',
             'payment_capture': 1
         })
-        return jsonify({'order_id': order['id']})
+        return jsonify({'order_id': order['id'], 'amount': 19900})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
