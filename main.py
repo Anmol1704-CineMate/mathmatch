@@ -157,37 +157,42 @@ def generate_question_v2(skill, mastery, seen_questions=[]):
 
     seen_text = "; ".join(seen_questions[-5:]) if seen_questions else "none"
 
-    prompt = f"""Generate a {difficulty} JEE Advanced style MCQ on {skill} — specifically {subtopic}.
+    prompt = f"""You are a JEE Advanced paper setter with 15 years of IIT experience.
 
-This must feel like an actual JEE Advanced question:
-- Every question must have a DIFFERENT structure and setup from typical questions
-- Rotate between these formats: function analysis, inequality problems, area under curve, definite integral properties, limit of sum, continuity & differentiability combined, inverse functions
-- Never use the same question template twice in a row
-- Vary the mathematical objects used: sometimes use piecewise functions, sometimes parametric, sometimes implicit
-- Never ask direct formula application (e.g. "find dy/dx of x²")
-- Always combine 2 or more concepts in one question
-- Use tricky setups — unusual domains, boundary conditions, composite functions
-- Options must be close to each other — a student who almost understands will pick wrong
-- The correct answer must require genuine insight, not just calculation
+TOPIC: {skill}
+SUBTOPIC: {subtopic}  
+DIFFICULTY: {difficulty} ({difficulty_guide})
 
-Difficulty guide: {difficulty_guide}
+YOUR TASK — follow these 4 steps in your head before writing anything:
+
+STEP 1 — PICK A CONCEPT ANGLE:
+Choose one specific property, theorem, or technique within {subtopic} that is non-obvious. Not the most popular one. Not the one every coaching class teaches first. Pick something a student needs to think about deeply.
+
+STEP 2 — DESIGN THE TRAP:
+Decide what a student who partially understands this concept will do wrong. Build your question so that wrong approach gives a clean, tempting answer that appears in the options.
+
+STEP 3 — REQUIRE AN INSIGHT:
+The correct answer must only be reachable through one key observation. A student who tries to brute force or apply standard templates will get trapped.
+
+STEP 4 — WRITE THE QUESTION:
+Now write the question. Numbers, bounds, and functions must be chosen deliberately to make the trap work and the insight rewarding.
 
 STRICT RULES:
-- Exactly one correct answer
-- All 4 options must be plausible — no obviously wrong options
-- No images, diagrams or tables required
-- Write ALL mathematical expressions wrapped in [MATH]...[/MATH] tags using proper LaTeX
-- The question MUST be strictly about {skill} only
-- Do NOT repeat or closely resemble any of these recently seen questions: {seen_text}
+- No direct formula application questions
+- No questions that look like: "find [standard operation] of [standard function]"
+- Options must all look plausible — a student who makes one mistake lands on a wrong option
+- Question must be completely different in structure from these recent ones: {seen_text}
+- Wrap ALL math in [MATH]...[/MATH] with proper LaTeX
+- Strictly about {skill} only
+- No images or diagrams
 
-Explanation rules (Kota teacher style):
+EXPLANATION (Kota teacher style):
 - Exactly 3 steps
-- Each step: show action AND result with actual math
+- Step 1: reveal the key insight the question was testing
+- Step 2: show the correct calculation with actual math
+- Step 3: explain why the most tempting wrong option fails
 - Max 30 words per step
-- Use [MATH]...[/MATH] for all expressions
-
-IMPORTANT: Do NOT repeat or closely resemble any of these recently seen questions: {seen_text}
-Generate a completely different question with different numbers, setup, and concept angle.
+- All math in [MATH]...[/MATH]
 
 Return ONLY this JSON, no markdown:
 {json_template}"""
