@@ -155,6 +155,8 @@ def generate_question_v2(skill, mastery, seen_questions=[]):
 
     json_template = '{"question": "question text here", "option_a": "first option", "option_b": "second option", "option_c": "third option", "option_d": "fourth option", "correct": "A or B or C or D", "explanation": "Step 1: [first step]. Step 2: [second step]. Step 3: [final step and answer]."}'
 
+    seen_text = "; ".join(seen_questions[-5:]) if seen_questions else "none"
+
     prompt = f"""Generate a {difficulty} JEE Advanced style MCQ on {skill} — specifically {subtopic}.
 
 This must feel like an actual JEE Advanced question:
@@ -172,7 +174,7 @@ STRICT RULES:
 - No images, diagrams or tables required
 - Write ALL mathematical expressions wrapped in [MATH]...[/MATH] tags using proper LaTeX
 - The question MUST be strictly about {skill} only
-- Do NOT repeat or closely resemble any of these questions: {seen_questions}
+- Do NOT repeat or closely resemble any of these recently seen questions: {seen_text}
 
 Explanation rules (Kota teacher style):
 - Exactly 3 steps
@@ -180,7 +182,7 @@ Explanation rules (Kota teacher style):
 - Max 30 words per step
 - Use [MATH]...[/MATH] for all expressions
 
-IMPORTANT: Do NOT repeat or closely resemble any of these recently seen questions: {seen_questions}
+IMPORTANT: Do NOT repeat or closely resemble any of these recently seen questions: {seen_text}
 Generate a completely different question with different numbers, setup, and concept angle.
 
 Return ONLY this JSON, no markdown:
@@ -207,6 +209,7 @@ Return ONLY this JSON, no markdown:
         return question
     except Exception as e:
         print(f"Groq failed: {e}")
+        print(f"Raw content was: {content if 'content' in dir() else 'no content'}")
         return None
 
 # ── Firebase Functions ────────────────────────────────────────
