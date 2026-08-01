@@ -133,7 +133,7 @@ def pick_question(skill, seen_ids=[]):
     question = unseen.sample(1).iloc[0]
     return question
 
-def generate_question_v2(skill, mastery):
+def generate_question_v2(skill, mastery, seen_questions=[]):
     if mastery < 40:
         difficulty = "medium"
         difficulty_guide = "multi-step problem requiring careful application of concepts"
@@ -155,45 +155,35 @@ def generate_question_v2(skill, mastery):
 
     json_template = '{"question": "question text here", "option_a": "first option", "option_b": "second option", "option_c": "third option", "option_d": "fourth option", "correct": "A or B or C or D", "explanation": "Step 1: [first step]. Step 2: [second step]. Step 3: [final step and answer]."}'
 
-    prompt = f"""Generate a {difficulty} JEE Maths multiple choice question on {skill} — specifically on {subtopic}.
+    prompt = f"""Generate a {difficulty} JEE Advanced style MCQ on {skill} — specifically {subtopic}.
+
+This must feel like an actual JEE Advanced question:
+- Never ask direct formula application (e.g. "find dy/dx of x²")
+- Always combine 2 or more concepts in one question
+- Use tricky setups — unusual domains, boundary conditions, composite functions
+- Options must be close to each other — a student who almost understands will pick wrong
+- The correct answer must require genuine insight, not just calculation
+
 Difficulty guide: {difficulty_guide}
 
-This is for a Class 11-12 Indian student preparing for JEE (Joint Entrance Examination).
-Questions must require multi-step thinking — never straightforward single-step calculations.
-
-Strict rules:
+STRICT RULES:
 - Exactly one correct answer
 - All 4 options must be plausible — no obviously wrong options
 - No images, diagrams or tables required
-- Write ALL mathematical expressions wrapped in [MATH]...[/MATH] tags
-- Use proper LaTeX inside the tags
-- Examples:
-  - Fractions: [MATH]\\frac{{1}}{{6}}[/MATH]
-  - Powers: [MATH]x^{{2}}[/MATH]
-  - Limits: [MATH]\\lim_{{x \\to 0}}[/MATH]
-  - Square roots: [MATH]\\sqrt{{x}}[/MATH]
-  - Trigonometry: [MATH]\\sin(x)[/MATH]
-- Never use LaTeX outside of [MATH]...[/MATH] tags
-- Plain text parts of the question should remain plain text
-- Use clean mathematical notation
-- Question must be unambiguous
-- The question MUST be strictly about {skill} — do NOT generate questions from any other topic
-- If the subtopic involves a concept from another chapter, find a different subtopic within {skill}
+- Write ALL mathematical expressions wrapped in [MATH]...[/MATH] tags using proper LaTeX
+- The question MUST be strictly about {skill} only
+- Do NOT repeat or closely resemble any of these questions: {seen_questions}
 
-Write the explanation like a Kota JEE teacher explaining to a student who just got this wrong.
-Rules:
+Explanation rules (Kota teacher style):
 - Exactly 3 steps
-- Each step must show BOTH the action AND the result with actual numbers or expressions
-- Step 1: Set up the problem — simplify, substitute, or identify the key technique
-- Step 2: Do the main calculation — show the working with actual math
-- Step 3: State the final answer clearly and why it is correct
-- Maximum 30 words per step
-- Use plain English for actions, use [MATH]...[/MATH] tags for all expressions
-- Never say "given the options" or "based on the problem" or "we can see that"
-- Never repeat the question in the explanation
-- Be direct, specific, and clear — every word must help the student understand
+- Each step: show action AND result with actual math
+- Max 30 words per step
+- Use [MATH]...[/MATH] for all expressions
 
-Return ONLY this JSON format, no markdown, no explanation:
+IMPORTANT: Do NOT repeat or closely resemble any of these recently seen questions: {seen_questions}
+Generate a completely different question with different numbers, setup, and concept angle.
+
+Return ONLY this JSON, no markdown:
 {json_template}"""
 
     try:
@@ -252,6 +242,7 @@ def recommend():
         data = request.json or {}
         student_id = data.get('student_id') or 'guest'
         topic = data.get('topic') or 'Limits & Continuity'
+        seen_questions = data.get('seen_questions', [])
 
         student = load_student(student_id)
         mastery = 30
@@ -259,7 +250,7 @@ def recommend():
             mastery = student['skills'].get(topic, 30)
 
         subtopic = random.choice(skill_map.get(topic, [topic]))
-        question = generate_question_v2(topic, mastery)
+        question = generate_question_v2(topic, mastery, seen_questions)
 
         if question is None:
             question = {
