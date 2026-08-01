@@ -674,6 +674,7 @@
   }
 
   let selectedTopic = '';
+  let seenQuestions = [];
   let studentSkills = {};
   let studentAttempts = JSON.parse(localStorage.getItem('mathmatch_attempts') || '{}');
   let dailyAttempts = JSON.parse(localStorage.getItem('mathmatch_daily') || '{"count":0,"date":""}');
@@ -914,7 +915,8 @@
     try {
       const data = await apiPost('/recommend', {
         student_id: studentId,
-        topic: selectedTopic
+        topic: selectedTopic,
+        seen_questions: seenQuestions
       });
 
       console.log('Recommend response:', JSON.stringify(data));
@@ -923,6 +925,10 @@
       }
 
       p2Question = data;
+      if (data.question && !seenQuestions.includes(data.question)) {
+        seenQuestions.push(data.question);
+        if (seenQuestions.length > 20) seenQuestions.shift();
+      }
       currentQuestionSkill = data.skill || selectedTopic;
 
       renderPhase2Question();
