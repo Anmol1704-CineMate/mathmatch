@@ -200,7 +200,13 @@ Return ONLY this JSON, no markdown:
     try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a JEE Advanced paper setter with 15 years of IIT experience. You NEVER generate direct computation questions. Every question you write has a trap that catches students who apply formulas without thinking, and an insight that rewards students who truly understand the concept. You always think about what misconception you are testing before writing any question."
+                },
+                {"role": "user", "content": prompt}
+            ],
             temperature=0.9
         )
         content = response.choices[0].message.content
