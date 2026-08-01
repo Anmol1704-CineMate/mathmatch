@@ -160,6 +160,10 @@ def generate_question_v2(skill, mastery, seen_questions=[]):
     prompt = f"""Generate a {difficulty} JEE Advanced style MCQ on {skill} — specifically {subtopic}.
 
 This must feel like an actual JEE Advanced question:
+- Every question must have a DIFFERENT structure and setup from typical questions
+- Rotate between these formats: function analysis, inequality problems, area under curve, definite integral properties, limit of sum, continuity & differentiability combined, inverse functions
+- Never use the same question template twice in a row
+- Vary the mathematical objects used: sometimes use piecewise functions, sometimes parametric, sometimes implicit
 - Never ask direct formula application (e.g. "find dy/dx of x²")
 - Always combine 2 or more concepts in one question
 - Use tricky setups — unusual domains, boundary conditions, composite functions
@@ -191,7 +195,8 @@ Return ONLY this JSON, no markdown:
     try:
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9
         )
         content = response.choices[0].message.content
         content = content.replace('```json', '').replace('```', '').strip()
