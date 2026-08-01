@@ -134,21 +134,15 @@ def pick_question(skill, seen_ids=[]):
     return question
 
 def generate_question_v2(skill, mastery, seen_questions=[]):
-    if mastery < 40:
-        difficulty = "medium"
-        difficulty_guide = "multi-step problem requiring careful application of concepts"
-    elif mastery < 55:
-        difficulty = "medium-hard"
-        difficulty_guide = "problem requiring strong conceptual understanding and multiple steps"
-    elif mastery < 70:
+    if mastery < 60:
         difficulty = "hard"
-        difficulty_guide = "challenging problem similar to JEE Mains level"
-    elif mastery < 85:
+        difficulty_guide = "challenging problem similar to JEE Advanced level — requires multi-step thinking and concept combination"
+    elif mastery < 80:
         difficulty = "very hard"
-        difficulty_guide = "difficult problem similar to JEE Advanced level"
+        difficulty_guide = "difficult problem at JEE Advanced level — requires non-obvious insight and careful reasoning"
     else:
         difficulty = "expert"
-        difficulty_guide = "highly challenging problem at JEE Advanced top percentile level"
+        difficulty_guide = "highly challenging problem at JEE Advanced top percentile level — only top 1% of aspirants solve this correctly"
 
     subtopics = skill_map.get(skill, [skill])
     subtopic = random.choice(subtopics)
