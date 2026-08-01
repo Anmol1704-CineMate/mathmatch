@@ -926,7 +926,8 @@
 
       p2Question = data;
       if (data.question && !seenQuestions.includes(data.question)) {
-        seenQuestions.push(data.question);
+        const structureTag = (data.subtopic || '') + '::' + (data.question.substring(0, 60));
+        seenQuestions.push(structureTag);
         if (seenQuestions.length > 20) seenQuestions.shift();
       }
       currentQuestionSkill = data.skill || selectedTopic;

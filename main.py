@@ -175,7 +175,9 @@ STRICT RULES:
 - No direct formula application questions
 - No questions that look like: "find [standard operation] of [standard function]"
 - Options must all look plausible — a student who makes one mistake lands on a wrong option
-- Question must be completely different in structure from these recent ones: {seen_text}
+- These question STRUCTURES were already used recently — do NOT use the same structure even with different numbers or functions: {seen_text}
+- A different structure means: different mathematical setup, different technique required, different type of insight needed
+- Changing only the numbers or variable names does NOT count as a different structure
 - Wrap ALL math in [MATH]...[/MATH] with proper LaTeX
 - Strictly about {skill} only
 - No images or diagrams
