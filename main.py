@@ -145,7 +145,11 @@ def generate_question_v2(skill, mastery, seen_questions=[]):
         difficulty_guide = "highly challenging problem at JEE Advanced top percentile level — only top 1% of aspirants solve this correctly"
 
     subtopics = skill_map.get(skill, [skill])
-    subtopic = random.choice(subtopics)
+    used_subtopics = [s.split('::')[0] for s in seen_questions if '::' in s]
+    available_subtopics = [s for s in subtopics if s not in used_subtopics]
+    if not available_subtopics:
+        available_subtopics = subtopics
+    subtopic = random.choice(available_subtopics)
 
     json_template = '{"question": "question text here", "option_a": "first option", "option_b": "second option", "option_c": "third option", "option_d": "fourth option", "correct": "A or B or C or D", "explanation": "Step 1: [first step]. Step 2: [second step]. Step 3: [final step and answer]."}'
 
